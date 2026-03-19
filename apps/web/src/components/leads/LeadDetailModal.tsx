@@ -48,8 +48,9 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
 
   const refreshLead = async () => {
     setSyncStatus('syncing');
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
     try {
-      const res = await fetch(`http://localhost:8081/api/v1/public/leads_demo/${leadId}`, { 
+      const res = await fetch(`${apiUrl}/public/leads_demo/${leadId}`, { 
           headers: getHeaders(),
           cache: 'no-store' 
       });
@@ -92,7 +93,8 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
             status: editData.status
         };
 
-        const res = await fetch(`http://localhost:8081/api/v1/public/leads_demo/${leadId}`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
+        const res = await fetch(`${apiUrl}/public/leads_demo/${leadId}`, {
             method: 'PATCH',
             headers: getHeaders(),
             body: JSON.stringify(patchPayload)
@@ -134,8 +136,9 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
   };
 
   const logActivity = async (type: string, content: string) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
     try {
-        await fetch(`http://localhost:8081/api/v1/public/leads_demo/activity`, {
+        await fetch(`${apiUrl}/public/leads_demo/activity`, {
             method: 'POST',
             headers: getHeaders(),
             body: JSON.stringify({

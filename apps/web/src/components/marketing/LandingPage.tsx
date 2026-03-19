@@ -19,6 +19,8 @@ export default function LandingPage({ title, subtitle, bgImage, slug }: LPProps)
     phone: '',
     city: '',
     message: '',
+    age: '',
+    group_type: 'individual',
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,8 +32,9 @@ export default function LandingPage({ title, subtitle, bgImage, slug }: LPProps)
   }, []);
 
   const checkStatus = async () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
     try {
-      const res = await fetch('http://localhost:8081/api/v1/public/lps');
+      const res = await fetch(`${apiUrl}/public/lps`);
       const data = await res.json();
       const currentLP = data.lps?.find((l: any) => l.slug === slug);
       if (currentLP && currentLP.status === 'inactive') {
@@ -39,7 +42,7 @@ export default function LandingPage({ title, subtitle, bgImage, slug }: LPProps)
       }
 
       // Fetch Tracking Pixels
-      const pixRes = await fetch('http://localhost:8081/api/v1/public/pixels');
+      const pixRes = await fetch(`${apiUrl}/public/pixels`);
       const pixData = await pixRes.json();
       setPixels(pixData.pixels || []);
     } catch (err) {
@@ -95,7 +98,8 @@ export default function LandingPage({ title, subtitle, bgImage, slug }: LPProps)
     };
 
     try {
-      const res = await fetch('http://localhost:8081/api/v1/public/leads', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
+      const res = await fetch(`${apiUrl}/public/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -191,15 +195,51 @@ export default function LandingPage({ title, subtitle, bgImage, slug }: LPProps)
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Your City</label>
+                    <input 
+                      required
+                      type="text" 
+                      placeholder="e.g. Bogor"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                      value={formData.city}
+                      onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Age (Usia)</label>
+                    <input 
+                      required
+                      type="number" 
+                      placeholder="45"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                      value={formData.age}
+                      onChange={(e) => setFormData({...formData, age: e.target.value})}
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Your City</label>
-                  <input 
-                    required
-                    type="text" 
-                    placeholder="Jakarta / Bogor / etc"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
-                    value={formData.city}
-                    onChange={(e) => setFormData({...formData, city: e.target.value})}
+                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Travel Arrangement</label>
+                   <select 
+                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                     value={formData.group_type}
+                     onChange={(e) => setFormData({...formData, group_type: e.target.value})}
+                   >
+                     <option value="individual" className="bg-slate-900">Pergi Sendiri</option>
+                     <option value="couple" className="bg-slate-900">Berdua Pasangan</option>
+                     <option value="family" className="bg-slate-900">Sekeluarga (3+ Orang)</option>
+                   </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Notes (Optional)</label>
+                  <textarea 
+                    placeholder="Preferensi hotel atau tanggal keberangkatan..."
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all h-24"
+                    value={formData.message}
+                    onChange={(e) => setFormData({...formData, message: e.target.value})}
                   />
                 </div>
                 <button 

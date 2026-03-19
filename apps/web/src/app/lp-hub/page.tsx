@@ -19,8 +19,9 @@ export default function LPHub() {
   }, []);
 
   const fetchLPs = async () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
     try {
-      const res = await fetch('http://localhost:8081/api/v1/public/lps');
+      const res = await fetch(`${apiUrl}/public/lps`);
       const data = await res.json();
       setLps(data.lps || []);
     } catch (err) {
@@ -31,9 +32,10 @@ export default function LPHub() {
   };
 
   const toggleStatus = async (id: string, currentStatus: string) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     try {
-      const res = await fetch(`http://localhost:8081/api/v1/public/lps/${id}/status`, {
+      const res = await fetch(`${apiUrl}/public/lps/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),

@@ -25,6 +25,8 @@ type CreateLeadRequest struct {
 	Name      string    `json:"name" binding:"required"`
 	Phone     string    `json:"phone" binding:"required"`
 	City      string    `json:"city"`
+	Age       int       `json:"age"`
+	GroupType string    `json:"group_type"`
 	Message   string    `json:"message"`
 	PackageID uuid.UUID `json:"package_id"`
 	UTM       struct {
@@ -47,6 +49,8 @@ func (h *LeadHandler) CreatePublicLead(c *gin.Context) {
 		Name:      req.Name,
 		Phone:     req.Phone,
 		City:      req.City,
+		Age:       req.Age,
+		GroupType: req.GroupType,
 		Message:   req.Message,
 		PackageID: req.PackageID,
 		Status:    "new",

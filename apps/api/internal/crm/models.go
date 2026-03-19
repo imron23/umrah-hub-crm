@@ -11,6 +11,8 @@ type Lead struct {
 	Name        string    `gorm:"size:100;not null" json:"name"`
 	Phone       string    `gorm:"size:20;not null" json:"phone"`
 	City        string    `gorm:"size:100" json:"city"`
+	Age         int       `gorm:"default:0" json:"age"`
+	GroupType   string    `gorm:"size:50" json:"group_type"` // individual, couple, family
 	Message     string    `gorm:"type:text" json:"message"`
 	PackageID   uuid.UUID `gorm:"type:uuid" json:"package_id"`
 	VendorID    uuid.UUID `gorm:"type:uuid" json:"vendor_id"`

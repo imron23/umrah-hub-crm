@@ -350,12 +350,16 @@ func main() {
 		// FORM MESSAGE CREATION
 		age := 25 + r.Intn(40) // usia random 25 sampai 65 tahun
 		groupStr := ""
+		groupType := "individual"
 		if paxCount == 1 {
 			groupStr = "Saya mendaftar sendiri."
+			groupType = "individual"
 		} else if paxCount == 2 {
 			groupStr = "Berencana berangkat berdua bersama pasangan saya."
+			groupType = "couple"
 		} else {
 			groupStr = fmt.Sprintf("Kami berencana berangkat sekeluarga (%d orang).", paxCount)
+			groupType = "family"
 		}
 		
 		fullMessage := fmt.Sprintf("Form Data: Usia %d tahun. %s %s", age, sentInfo.Text, groupStr)
@@ -376,6 +380,8 @@ func main() {
 			Name:         leadNames[i%len(leadNames)],
 			Phone:        fmt.Sprintf("081%d%d", 1+r.Intn(2), 10000000+r.Intn(89999999)),
 			City:         city,
+			Age:          age,
+			GroupType:    groupType,
 			Message:      fullMessage,
 			Status:       finalStatus,
 			LeadScore:    totalAiScore,
