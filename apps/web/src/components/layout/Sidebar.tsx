@@ -67,6 +67,7 @@ export default function Sidebar() {
           <nav className={`flex-1 flex flex-col gap-5 overflow-y-auto custom-scrollbar px-3 pb-8 ${isCollapsed ? "items-center" : ""}`}>
             <NavGroup label="Strategic" collapsed={isCollapsed}>
                 <NavItem href="/" icon="📊" label="Decision HQ" active={pathname === "/"} collapsed={isCollapsed} />
+                <NavItem href="/finance" icon="💰" label="Financial Core" active={pathname === "/finance"} collapsed={isCollapsed} />
                 <NavItem href="/analytics" icon="🧬" label="Audience DNA" active={pathname === "/analytics"} collapsed={isCollapsed} />
                 <NavItem href="/pixel-manager" icon="🛰️" label="Pixel Radar" active={pathname === "/pixel-manager"} collapsed={isCollapsed} />
             </NavGroup>
