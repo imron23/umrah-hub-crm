@@ -113,7 +113,7 @@ func main() {
 		{"Ramadhan Blessing 2026", "meta"},
 		{"Syawal Berkah Promo", "google"},
 		{"Summer Umrah Turkish", "tiktok"},
-		{"Flash Sale 12.12", "meta"},
+		{"Flash Sale Sultan", "meta"},
 	}
 	var createdCampaigns []Campaign
 	for _, cd := range campData {
@@ -132,13 +132,15 @@ func main() {
 		}
 	}
 
-	// 3. Vendors
+	// 3. Vendors (5 Tiers: Entry -> VVIP)
 	vendorData := []struct {
-		Name, Company, License string
+		Name, Company, License, Tier string
 	}{
-		{"Al-Fath Travel", "PT Al-Fath Global Wisata", "UM-102/2023"},
-		{"Mabrur Hajj Services", "PT Mabrur Berkah Jaya", "HJ-442/2022"},
-		{"Rabbani Umrah", "PT Rabbani Semesta", "UM-990/2024"},
+		{"Bismillah Berkah Economy", "PT Bismillah Hemat", "UM-EE-101", "entry"},
+		{"Harmoni Umrah Standard", "PT Harmoni Reguler", "UM-STD-222", "standard"},
+		{"Al-Fath Global Travel", "PT Al-Fath Premium", "UM-PRM-333", "premium"},
+		{"Mabrur Executive Hajj", "PT Mabrur VVIP", "UM-EXC-444", "exclusive"},
+		{"Sultan Private Jet Tours", "PT Sultan Dirgantara", "UM-ULT-555", "vvip"},
 	}
 	var createdVendors []vendorModel.Vendor
 	for _, vd := range vendorData {
@@ -147,42 +149,39 @@ func main() {
 		createdVendors = append(createdVendors, v)
 	}
 
-	// 4. OLD Packages (for backward compatibility if needed)
-	packageData := []struct {
-		Name, Slug  string
-		Price, Fee float64
-	}{
-		{"Umrah Ekonomi 9 Hari", "umrah-ekonomi", 24500000, 2000000},
-		{"VIP Syawal Swissotel", "vip-syawal", 38500000, 4500000},
-	}
+	// 4. OLD Packages Mapper (for compatibility)
 	var createdPackages []pkgModel.Package
-	for i, pd := range packageData {
+	for i, vd := range createdVendors {
 		p := pkgModel.Package{
-			ID: uuid.New(), VendorID: createdVendors[i].ID,
-			Name: pd.Name, Slug: pd.Slug, VendorPrice: pd.Price,
-			PlatformFee: pd.Fee, Status: "active",
+			ID: uuid.New(), VendorID: vd.ID, Name: vd.VendorName + " Promo", Slug: "promo-" + fmt.Sprintf("%d", i),
+			VendorPrice: 20000000 + float64(i*5000000), PlatformFee: 2000000, Status: "active",
 		}
 		db.DB.Create(&p)
 		createdPackages = append(createdPackages, p)
 	}
 
-	// 5. NEW Pricing Engine - Trip Packages
+	// 5. NEW Pricing Engine - Trip Packages (Linked to Vendors)
+	// Entry (0), Standard (1), Premium (2), Exclusive (3), VVIP (4)
 	tripPkgData := []struct {
+		VendorIdx        int
 		Name, Dest, Ccy string
 		Dur              int
 	}{
-		{"VIP Syawal Swissotel", "Makkah - Madinah", "IDR", 9},
-		{"Plus Turki & Cappadocia", "Makkah - Madinah - Istanbul", "IDR", 12},
-		{"Haji Furoda Platinum", "Makkah - Madinah VIP", "USD", 25},
-		{"Umrah Backpacker Akhir Tahun", "Makkah - Madinah", "IDR", 10},
+		{0, "Umrah Backpacker Hemat", "Makkah - Madinah", "IDR", 10},
+		{1, "Umrah Plus Thaif", "Makkah - Madinah - Thaif", "IDR", 9},
+		{2, "VIP Syawal Swissotel", "Makkah - Madinah", "IDR", 9},
+		{3, "Plus Turki & Cappadocia", "Makkah - Istanbul", "IDR", 12},
+		{4, "Haji Furoda Platinum / Private Jet", "Makkah VIP", "USD", 25},
 	}
 
 	var tripPkgs []crm.TripPackage
 	for _, td := range tripPkgData {
+		vid := createdVendors[td.VendorIdx].ID
 		tp := crm.TripPackage{
 			ID:             uuid.New(),
+			VendorID:       &vid,
 			Name:           td.Name,
-			Description:    "Paket spektakuler " + td.Name + " dengan fasilitas kelas dunia terbaik.",
+			Description:    "Paket premium terbaik dari " + createdVendors[td.VendorIdx].VendorName,
 			Destination:    td.Dest,
 			DurationNights: td.Dur,
 			Currency:       td.Ccy,
@@ -203,17 +202,17 @@ func main() {
 		}
 
 		if td.Ccy == "USD" {
-			tiers[0].BasePrice = 12000
-			tiers[1].BasePrice = 9000
-			tiers[2].BasePrice = 7500
+			tiers[0].BasePrice = 15000
+			tiers[1].BasePrice = 12000
+			tiers[2].BasePrice = 9000
+		} else { // Adjust price drastically based on vendor tier
+			multiplier := float64(td.VendorIdx+1) // 1 to 5
+			tiers[0].BasePrice = 20000000 * multiplier
+			tiers[1].BasePrice = 17000000 * multiplier
+			tiers[2].BasePrice = 14000000 * multiplier
 		}
 
 		for idx, tr := range tiers {
-			// Randomly omit Silver for some packages
-			if idx == 2 && r.Intn(2) == 0 {
-				continue
-			}
-
 			tier := crm.PackageTier{
 				ID:            uuid.New(),
 				TripPackageID: tp.ID,
@@ -226,17 +225,12 @@ func main() {
 			}
 			db.DB.Create(&tier)
 
-			// Room Prices
 			roomTypes := []string{"quad", "triple", "double"}
-			basePrice := tr.BasePrice
-
 			for rip, rt := range roomTypes {
-				// Premium for double/triple
-				priceVariant := basePrice + float64(rip*2000000)
+				priceVariant := tr.BasePrice + float64(rip*2000000)
 				if td.Ccy == "USD" {
-					priceVariant = basePrice + float64(rip*500)
+					priceVariant = tr.BasePrice + float64(rip*500)
 				}
-
 				rp := crm.TierRoomPrice{
 					ID:        uuid.New(),
 					TierID:    tier.ID,
@@ -251,94 +245,88 @@ func main() {
 	}
 
 	// 6. Agents
-	agentNames := []string{"Ahmad Faisal", "Aisyah", "Rizky", "Meida", "Bram"}
+	agentNames := []string{"Faisal", "Aisyah", "Meida", "Bram", "Rizky"}
 	var createdAgents []crm.Agent
 	for _, name := range agentNames {
-		user := iam.User{ID: uuid.New(), Email: strings.ToLower(strings.ReplaceAll(name, " ", "")) + "@umrahhub.id", Status: "active", RoleID: roleMap["agent"]}
+		user := iam.User{ID: uuid.New(), Email: strings.ToLower(name) + "@umrahhub.id", Status: "active", RoleID: roleMap["agent"]}
 		db.DB.Create(&user)
-		agent := crm.Agent{
-			ID: uuid.New(), UserID: user.ID,
-			DailyCapacity: 25, CurrentLoad: 0, Status: "available",
-		}
+		agent := crm.Agent{ID: uuid.New(), UserID: user.ID, DailyCapacity: 30, Status: "available"}
 		db.DB.Create(&agent)
 		createdAgents = append(createdAgents, agent)
 	}
 
-	// 7. 50 Highly Varied Leads with Transactions
+	// 7. 50 Highly Varied Leads with AI Score Calculation
+	fmt.Printf("💎 Injecting 50 High-Fidelity Leads with Dynamic AI Sentiments...\n")
+
 	leadNames := []string{
-		"Budi Santoso", "Siti Aminah", "Rudi Kurniawan", "Dewi Lestari", "Andi Pratama",
-		"Wahyu Saputra", "Tuti Indriani", "Agus Setiawan", "Rini Mulyani", "Iwan Fals",
+		"Budi Santoso", "Siti Aminah", "Ario Bayu", "Tara Basro", "Andi Pratama",
+		"Wahyu Saputra", "Tuti Indriani", "Reza Rahadian", "Rini Mulyani", "Iwan Fals",
 		"Nita Kusuma", "Hendra Wijaya", "Anita Carolina", "Doni Salman", "Rika Yuliana",
 		"Eko Prasetyo", "Linda Permatasari", "Faisal Rachman", "Dina Oktavia", "Taufiq Hidayat",
-		"Yudi Antoro", "Santi Novita", "Arif Rahman", "Dian Sastrowardoyo", "Reza Rahadian",
+		"Yudi Antoro", "Santi Novita", "Arif Rahman", "Dian Sastrowardoyo", "Raffi Ahmad",
 		"Intan Nuraini", "Bayu Skak", "Gita Gutawa", "Indra Bekti", "Maudy Ayunda",
-		"Ariel Noah", "Luna Maya", "Deddy Corbuzier", "Raffi Ahmad", "Nagita Slavina",
-		"Iqbaal Ramadhan", "Vanesha Prescilla", "Adipati Dolken", "Chelsea Islan", "Chicco Jerikho",
-		"Rio Dewanto", "Atiqah Hasiholan", "Vino G. Bastian", "Marsha Timothy", "Joe Taslim",
-		"Iko Uwais", "Yayan Ruhian", "Julie Estelle", "Ario Bayu", "Tara Basro",
+		"Ariel Noah", "Luna Maya", "Deddy Corbuzier", "Nagita Slavina", "Iqbaal",
+		"Abdurrahman", "Fatimah Zahra", "Siti Khadijah", "Muhammad Ali", "Omar Khalid",
+		"Aisyah Putri", "Dinda Mutiara", "Vino G. Bastian", "Marsha Timothy", "Joe Taslim",
+		"Iko Uwais", "Yayan Ruhian", "Julie Estelle", "Nabila Syakieb", "Ririn Dwi Ariyanti",
 	}
-	cities := []string{"Bogor", "Jakarta Selatan", "Depok", "Bekasi", "Tangerang", "Bandung", "Surabaya", "Malang", "Medan", "Makassar"}
+	cities := []string{"Jakarta Selatan", "Bogor", "Depok", "Bekasi", "Tangerang", "Jakarta Pusat", "Surabaya", "Malang", "Medan", "Makassar"}
 	statuses := []string{"new", "contacted", "qualified", "prospect", "dp", "closing", "lost"}
 
-	fmt.Printf("💎 Injecting 50 High-Fidelity Leads & Revenue Pipeline...\n")
+	// Sentiment variations
+	sentiments := []struct{ Text string; Score int }{
+		{"Saya sudah sangat siap berangkat akhir bulan ini. Tolong kirimkan rincian rekening transfernya.", 40},
+		{"Keluarga kami tertarik. Tolong buatkan penawaran resminya karena kami memang sudah niat.", 35},
+		{"Bisa tolong kirim brosurnya? Kami sedang mencari-cari travel yang pas.", 20},
+		{"Ini harganya mahal banget ya dibanding travel sebelah. Ada diskon kah?", 10},
+		{"Saya coba tanya-tanya dulu ya, rencananya tahun depan.", 5},
+	}
 
 	for i := 0; i < 50; i++ {
 		leadID := uuid.New()
 		creationTime := now.AddDate(0, 0, -r.Intn(45)).Add(time.Duration(r.Intn(24)) * time.Hour)
 		
-		tp := tripPkgs[r.Intn(len(tripPkgs))] // Associated TripPackage
+		tp := tripPkgs[r.Intn(len(tripPkgs))]
 		agent := createdAgents[r.Intn(len(createdAgents))]
 		finalStatus := statuses[r.Intn(len(statuses))]
+		city := cities[r.Intn(len(cities))]
 
-		// Lead Score Logic
-		score := 20 + r.Intn(60)
-		if finalStatus == "dp" || finalStatus == "closing" {
-			score = 85 + r.Intn(15)
+		// --- AI CALCULATION SCORE (Total 100) ---
+		
+		// 1. Sentiment Text (40%)
+		sentInfo := sentiments[r.Intn(len(sentiments))]
+		scoreSentiment := sentInfo.Score
+
+		// 2. Region Jabodetabek (10%)
+		scoreLocation := 0
+		jabodetabek := []string{"Jakarta Selatan", "Bogor", "Depok", "Bekasi", "Tangerang", "Jakarta Pusat"}
+		for _, j := range jabodetabek {
+			if city == j {
+				scoreLocation = 10
+				break
+			}
 		}
 
-		pkg := createdPackages[r.Intn(len(createdPackages))]
+		// 3. Group / Keluarganya (30%)
+		paxCount := 1
+		groupSizes := []int{1, 2, 3, 4, 5, 8, 12}
+		paxCount = groupSizes[r.Intn(len(groupSizes))]
+		scoreGroup := 5
+		if paxCount == 2 { scoreGroup = 15 }
+		if paxCount > 2 && paxCount <= 4 { scoreGroup = 25 }
+		if paxCount >= 5 { scoreGroup = 30 }
 
-		// CREATE LEAD
-		lead := crm.Lead{
-			ID:           leadID,
-			Name:         leadNames[i%len(leadNames)],
-			Phone:        fmt.Sprintf("081%d%d", 1+r.Intn(2), 10000000+r.Intn(89999999)),
-			City:         cities[r.Intn(len(cities))],
-			Message:      fmt.Sprintf("[Paket: %s] Saya sangat tertarik mendaftar untuk keluarga. Total pendaftar %d orang.", tp.Name, 1+r.Intn(5)),
-			Status:       finalStatus,
-			LeadScore:    score,
-			LeadPriority: score / 20,
-			PackageID:    pkg.ID,
-			VendorID:     pkg.VendorID,
-			CreatedAt:    creationTime,
-		}
-		db.DB.Create(&lead)
+		// 4. Status Progress (10%)
+		scoreStatus := 0
+		if finalStatus == "dp" || finalStatus == "closing" { scoreStatus = 10 }
+		if finalStatus == "prospect" || finalStatus == "qualified" { scoreStatus = 7 }
+		if finalStatus == "contacted" { scoreStatus = 3 }
 
-		// LEAD TRAFFIC ATTRIBUTION (UTM)
-		camp := createdCampaigns[r.Intn(len(createdCampaigns))]
-		db.DB.Create(&crm.UTMLog{
-			ID:          uuid.New(),
-			LeadID:      leadID,
-			UTMSource:   camp.Provider,
-			UTMMedium:   "cpc",
-			UTMCampaign: camp.Name,
-			UTMContent:  "ad_variant_" + fmt.Sprintf("%d", r.Intn(5)),
-			FBClid:      "fb.1.171058" + uuid.New().String()[:8],
-			CreatedAt:   creationTime,
-		})
-
-		// AGENT ASSIGNMENT
-		db.DB.Create(&crm.LeadAssignment{
-			ID:              uuid.New(),
-			LeadID:          leadID,
-			AgentID:         agent.ID,
-			AssignedAt:      creationTime.Add(time.Minute * time.Duration(1+r.Intn(30))),
-			OwnershipStatus: "active",
-		})
-
-		// PROGRESSION TIMELINE (AI Analysis, WhatsApp, Calls, etc)
+		// 5. Update/Interaction Length (10%)
+		// Depend on how many statuses they went through
+		scoreLength := 0
 		currentPath := []string{"new"}
-		if finalStatus != "new" {
+		if finalStatus != "new" && finalStatus != "lost" {
 			currentPath = append(currentPath, "contacted")
 			if finalStatus == "dp" || finalStatus == "closing" || finalStatus == "prospect" || finalStatus == "qualified" {
 				currentPath = append(currentPath, "qualified")
@@ -349,55 +337,100 @@ func main() {
 					}
 				}
 			}
-			if finalStatus == "lost" {
-				currentPath = append(currentPath, "lost")
+			scoreLength = (len(currentPath) * 2) // max 5 statuses * 2 = 10%
+			if scoreLength > 10 { scoreLength = 10 }
+		} else if finalStatus == "lost" {
+			currentPath = []string{"new", "contacted", "lost"}
+			scoreLength = 2
+		}
+
+		// FINAL TOTAL SCORE
+		totalAiScore := scoreSentiment + scoreLocation + scoreGroup + scoreStatus + scoreLength
+
+		// FORM MESSAGE CREATION
+		age := 25 + r.Intn(40) // usia random 25 sampai 65 tahun
+		groupStr := ""
+		if paxCount == 1 {
+			groupStr = "Saya mendaftar sendiri."
+		} else if paxCount == 2 {
+			groupStr = "Berencana berangkat berdua bersama pasangan saya."
+		} else {
+			groupStr = fmt.Sprintf("Kami berencana berangkat sekeluarga (%d orang).", paxCount)
+		}
+		
+		fullMessage := fmt.Sprintf("Form Data: Usia %d tahun. %s %s", age, sentInfo.Text, groupStr)
+
+		// CREATE LEAD
+		// We use fallback legacy PackageID/VendorID from createdPackages[0] for DB constraint,
+		// but TripPackage relation is the new source of truth.
+		fallbackPkg := createdPackages[0]
+		for _, cp := range createdPackages {
+			if cp.VendorID == *tp.VendorID {
+				fallbackPkg = cp
+				break
 			}
 		}
 
+		lead := crm.Lead{
+			ID:           leadID,
+			Name:         leadNames[i%len(leadNames)],
+			Phone:        fmt.Sprintf("081%d%d", 1+r.Intn(2), 10000000+r.Intn(89999999)),
+			City:         city,
+			Message:      fullMessage,
+			Status:       finalStatus,
+			LeadScore:    totalAiScore,
+			LeadPriority: totalAiScore / 20,
+			PackageID:    fallbackPkg.ID,
+			VendorID:     *tp.VendorID,
+			CreatedAt:    creationTime,
+		}
+		db.DB.Create(&lead)
+
+		// UTM LOGS
+		camp := createdCampaigns[r.Intn(len(createdCampaigns))]
+		db.DB.Create(&crm.UTMLog{
+			ID:          uuid.New(), LeadID: leadID, UTMSource: camp.Provider, UTMMedium: "cpc", 
+			UTMCampaign: camp.Name, FBClid: "fb.1." + uuid.New().String()[:8], CreatedAt: creationTime,
+		})
+
+		// LEAD ASSIGNMENT
+		db.DB.Create(&crm.LeadAssignment{
+			ID: uuid.New(), LeadID: leadID, AgentID: agent.ID, 
+			AssignedAt: creationTime.Add(time.Minute * time.Duration(1+r.Intn(30))), OwnershipStatus: "active",
+		})
+
+		// TIMELINE ACTIVITIES
 		lastStepTime := creationTime
 		for stepIdx, stage := range currentPath {
 			stepTime := lastStepTime.Add(time.Hour * time.Duration(2+r.Intn(48)))
-			if stepTime.After(now) {
-				stepTime = now.Add(-time.Minute * time.Duration(1+r.Intn(60)))
-			}
+			if stepTime.After(now) { stepTime = now.Add(-time.Minute * time.Duration(1+r.Intn(60))) }
 
 			db.DB.Create(&crm.LeadActivity{
-				ID:        uuid.New(),
-				LeadID:    leadID,
-				Type:      "status_change",
-				Content:   fmt.Sprintf("Status updated to %s", strings.ToUpper(stage)),
-				AgentName: agentNames[r.Intn(len(agentNames))],
-				CreatedAt: stepTime,
+				ID: uuid.New(), LeadID: leadID, Type: "status_change",
+				Content: fmt.Sprintf("Status updated to %s", strings.ToUpper(stage)),
+				AgentName: agentNames[r.Intn(len(agentNames))], CreatedAt: stepTime,
 			})
 
-			if stage == "contacted" {
+			// Add AI Alert Details based on AI metrics
+			if stepIdx == 0 {
+				aiContent := fmt.Sprintf(
+					"AI Score Details (%d): Sentiment(%d) + Locator(%d) + GroupSize(%d) + History(%d) + Intent(%d)", 
+					totalAiScore, scoreSentiment, scoreLocation, scoreGroup, scoreLength, scoreStatus,
+				)
+				if totalAiScore > 75 {
+					aiContent = "🔥 HOT LEAD ALERT! " + aiContent
+				}
 				db.DB.Create(&crm.LeadActivity{
-					ID:        uuid.New(),
-					LeadID:    leadID,
-					Type:      "wa_sent",
-					Content:   fmt.Sprintf("Sent PDF itinerary for %s. Lead seems responsive.", tp.Name),
-					AgentName: agentNames[r.Intn(len(agentNames))],
-					CreatedAt: stepTime.Add(time.Minute * 10),
-				})
-			}
-
-			if stepIdx == 0 && score > 80 {
-				db.DB.Create(&crm.LeadActivity{
-					ID:        uuid.New(),
-					LeadID:    leadID,
-					Type:      "ai_analysis",
-					Content:   fmt.Sprintf("AI Alert: Extremely high conversion intent (%d/100). Suggesting premium up-sell.", score),
-					AgentName: "System AI",
-					CreatedAt: stepTime.Add(time.Minute * 1),
+					ID: uuid.New(), LeadID: leadID, Type: "ai_analysis",
+					Content: aiContent, AgentName: "AI Auditor", CreatedAt: stepTime.Add(time.Minute * 1),
 				})
 			}
 
 			lastStepTime = stepTime
 		}
 
-		// ─── REVENUE INJECTION (DP or Closing) ───
+		// ─── REVENUE INJECTION ───
 		if finalStatus == "dp" || finalStatus == "closing" {
-			// Find a random tier and room price for this package!
 			var tiers []crm.PackageTier
 			db.DB.Where("trip_package_id = ?", tp.ID).Find(&tiers)
 
@@ -408,7 +441,6 @@ func main() {
 
 				if len(roomPrices) > 0 {
 					selectedRoom := roomPrices[r.Intn(len(roomPrices))]
-					paxCount := 1 + r.Intn(4) // 1 to 5 pax
 					finalAmount := selectedRoom.Price * float64(paxCount)
 
 					tx := crm.LeadTransaction{
@@ -418,30 +450,25 @@ func main() {
 						TierID:          &selectedTier.ID,
 						RoomPriceID:     &selectedRoom.ID,
 						Currency:        tp.Currency,
-						TransactionType: finalStatus, // dp or full_payment(closing)
+						TransactionType: finalStatus,
 						PaxCount:        paxCount,
 						FinalAmount:     finalAmount,
-						Notes:           fmt.Sprintf("Auto-generated seeding transaction for %s", tp.Name),
+						Notes:           fmt.Sprintf("Transaction linked from package %s (Vendor ID: %s)", tp.Name, *tp.VendorID),
 						CreatedAt:       lastStepTime,
 					}
-					
 					if finalStatus == "dp" {
-						dpAmt := 5000000.0 // 5jt IDR Base DP
-						if tp.Currency == "USD" {
-							dpAmt = 500.0 // 500 USD Base DP
-						}
-						dpAmt = dpAmt * float64(paxCount)
+						dpAmt := 3000000.0 * float64(paxCount)
+						if tp.Currency == "USD" { dpAmt = 300.0 * float64(paxCount) }
 						tx.DPAmount = &dpAmt
 						tx.TransactionType = "dp"
-					} else { // closing
+					} else {
 						tx.TransactionType = "full_payment"
 					}
-
 					db.DB.Create(&tx)
 				}
 			}
-		} // end if dp or closing
-	} // end of 50 leads loop
+		}
+	}
 
-	fmt.Println("🎉 Database Seeding & Mock Scenarios Injection Complete!")
+	fmt.Println("🎉 Database Seeding w/ 5 Vendor Tiers & AI Prefs Injection Complete!")
 }
