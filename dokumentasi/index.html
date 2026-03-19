@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Documentation | Umrah Hub Aggregator CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5865F2;
+            --secondary: #00D1FF;
+            --accent: #FF00E5;
+            --bg: #0B0E14;
+            --sidebar-bg: #12161F;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #F8FAFC;
+            --text-dim: #94A3B8;
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        nav {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 40px 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-section {
+            margin-bottom: 30px;
+        }
+
+        .nav-section h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 10px 15px;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            margin-bottom: 5px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(88, 101, 242, 0.1);
+            color: var(--text);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            margin-left: 300px;
+            padding: 60px 80px;
+            max-width: 1100px;
+        }
+
+        header {
+            margin-bottom: 80px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 40px;
+        }
+
+        h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; }
+        h2 { font-size: 2.2rem; font-weight: 700; margin-top: 60px; margin-bottom: 25px; border-left: 4px solid var(--primary); padding-left: 20px; }
+        h3 { font-size: 1.5rem; font-weight: 600; margin-top: 40px; margin-bottom: 15px; color: var(--secondary); }
+
+        p { margin-bottom: 20px; color: var(--text-dim); font-size: 1.1rem; }
+
+        /* Components */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-right: 10px;
+        }
+        .badge-new { background: rgba(0, 209, 255, 0.15); color: var(--secondary); border: 1px solid var(--secondary); }
+        .badge-core { background: rgba(88, 101, 242, 0.15); color: var(--primary); border: 1px solid var(--primary); }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: transform 0.3s;
+        }
+        .feature-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        .steps li {
+            margin-bottom: 25px;
+            position: relative;
+            padding-left: 50px;
+        }
+        .steps li::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 34px;
+            height: 34px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1E293B;
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: var(--secondary);
+            font-size: 0.9em;
+        }
+
+        .alert {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin: 30px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 700;
+            color: var(--secondary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* Diagrams */
+        .diagram {
+            background: #000;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 40px 0;
+            border: 1px dashed var(--border);
+        }
+
+        footer {
+            margin-top: 100px;
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 992px) {
+            nav { width: 80px; padding: 20px 10px; }
+            nav .nav-link span, nav h4, nav .nav-logo span { display: none; }
+            main { margin-left: 80px; padding: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-logo">
+            🌙 <span>UmrahHub</span>
+        </div>
+        
+        <div class="nav-section">
+            <h4>Pendahuluan</h4>
+            <a href="#overview" class="nav-link active">Eksosistem Overview</a>
+            <a href="#architecture" class="nav-link">Arsitektur Sistem</a>
+        </div>
+
+        <div class="nav-section">
+            <h4>Core Modules</h4>
+            <a href="#iam" class="nav-link">Keamanan (IAM)</a>
+            <a href="#vendor" class="nav-link">Manajemen Travel</a>
+            <a href="#package" class="nav-link">Katalog Paket</a>
+        </div>
+
+        <div class="nav-section">
+            <h4>Pemasaran & Sales</h4>
+            <a href="#leads" class="nav-link">Lead Capture & CRM</a>
+            <a href="#pixel" class="nav-link">Tracking Pixel</a>
+        </div>
+
+        <div class="nav-section">
+            <h4>Intelligence & AI</h4>
+            <a href="#scoring" class="nav-link">Lead Scoring</a>
+            <a href="#routing" class="nav-link">Smart Routing</a>
+            <a href="#automation" class="nav-link">Automation Engine</a>
+        </div>
+
+        <div class="nav-section">
+            <h4>Data & Analytics</h4>
+            <a href="#analytics" class="nav-link">Business Intelligence</a>
+            <a href="#roas" class="nav-link">Analisis ROAS</a>
+        </div>
+    </nav>
+
+    <main>
+        <header>
+            <span class="badge badge-core">Versi 2.0.0</span>
+            <h1>Dokumentasi Lengkap Platform</h1>
+            <p>Panduan teknis dan operasional menyeluruh untuk Ekosistem Umrah Hub Aggregator CRM.</p>
+        </header>
+
+        <section id="overview">
+            <h2>1. Eksosistem Overview</h2>
+            <p>Umrah Hub Aggregator adalah platform multifungsi yang dirancang untuk menjembatani antara Vendor Travel Umrah dan calon jamaah melalui pemasaran digital yang terintegrasi. Platform ini tidak hanya berfungsi sebagai database, tetapi sebagai <strong>Revenue Engine</strong> yang mengoptimalkan setiap Rupiah yang Anda habiskan untuk iklan.</p>
+            
+            <div class="alert">
+                <span>💡</span>
+                <div>
+                    <strong>Fokus Utama:</strong> Konversi Maksimal, Efisiensi Sales, dan Transparansi ROI (Return on Investment).
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2>2. Arsitektur Sistem</h2>
+            <p>Sistem dibangun dengan teknologi modern untuk memastikan kecepatan (performance) dan skalabilitas tinggi.</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Layer</th>
+                            <th>Teknologi</th>
+                            <th>Fungsi Utama</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Frontend</td>
+                            <td>Next.js 14</td>
+                            <td>Interface admin yang reaktif dan Dashboard interaktif.</td>
+                        </tr>
+                        <tr>
+                            <td>Backend API</td>
+                            <td>Golang (Gin)</td>
+                            <td>RESTful API yang sangat cepat dalam memproses transaksi.</td>
+                        </tr>
+                        <tr>
+                            <td>Database</td>
+                            <td>PostgreSQL</td>
+                            <td>Penyimpanan data relasional yang aman untuk ribuan leads.</td>
+                        </tr>
+                        <tr>
+                            <td>Cache & Queue</td>
+                            <td>Redis</td>
+                            <td>Mesin antrean untuk proses background dan worker.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="iam">
+            <h2>3. Keamanan & IAM</h2>
+            <h3>Identity & Access Management</h3>
+            <p>Setiap akses ke sistem dilindungi secara berlapis untuk memastikan data jamaah Anda aman.</p>
+            <div class="feature-card">
+                <ul class="steps">
+                    <li><strong>Authentication:</strong> Menggunakan standar industri JWT (JSON Web Token) dengan masa berlaku terbatas.</li>
+                    <li><strong>Authorization (RBAC):</strong> Sistem membagi peran pengguna menjadi:
+                        <ul>
+                            <li><code>Super Admin</code>: Kontrol penuh atas seluruh sistem & keuangan.</li>
+                            <li><code>Sales Agent</code>: Hanya melihat lead yang ditugaskan kepada mereka.</li>
+                            <li><code>Vendor Manager</code>: Mengelola paket travel mereka sendiri.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Audit Trail:</strong> Setiap login dan perubahan data sensitif dicatat dalam log sistem.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="vendor">
+            <h2>4. Manajemen Travel & Katalog</h2>
+            <h3>Optimasi Katalog Paket Umrah</h3>
+            <p>Sistem memungkinkan pengelolaan ribuan paket umrah dari berbagai vendor travel secara terpusat.</p>
+            <div class="feature-card">
+                <h3>Visi Bisnis:</h3>
+                <p>Menciptakan "Pasar Digital" Umrah yang transparan di mana jamaah bisa memilih berdasarkan harga, fasilitas, atau kredibilitas vendor.</p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <td><strong>Fungsi Manajemen Vendor</strong></td>
+                            <td>Data legalitas, profil perusahaan, dan sistem komisi.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sistem Pricing</strong></td>
+                            <td>Pemisahan antara <code>Vendor Price</code>, <code>Customer Price</code>, dan <code>Platform Fee</code> otomatis.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Manajemen Stok</strong></td>
+                            <td>Pelacakan sisa kuota (seat) kursi secara real-time.</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="leads">
+            <h2>5. Lead Capture & CRM Pipeline</h2>
+            <span class="badge badge-new">Update v2</span>
+            <h3>Mesin Penjualan Ujung-ke-Ujung</h3>
+            <p>Manajemen prospek (leads) adalah bagian tersibuk dalam sistem ini. Kini diperkuat dengan alur kerja otomatis.</p>
+            
+            <div class="feature-card">
+                <h3>Alur Hidup Prospek:</h3>
+                <ol class="steps">
+                    <li><strong>Capture:</strong> Pengunjung mengisi form di Landing Page dengan integrasi UTM.</li>
+                    <li><strong>Classification:</strong> Lead divalidasi dan diberikan kategori awal secara otomatis.</li>
+                    <li><strong>Distribution:</strong> Lead tidak lagi "menganggur" tapi langsung masuk ke aplikasi mobile agen sales.</li>
+                    <li><strong>Engagement:</strong> Agen melakukan update status (misal: "Follow up ke-2").</li>
+                    <li><strong>Conversion:</strong> Proses pembayaran tercatat dan booking dikonfirmasi.</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="scoring">
+            <h2>6. Lead Scoring Module</h2>
+            <span class="badge badge-new">Fitur Intelligence</span>
+            <h3>Bekerja Lebih Cerdas, Bukan Lebih Keras</h3>
+            <p>Sistem penilaian otomatis yang menggunakan algoritma heuristik untuk memisahkan "pembeli serius" dari "sekadar tanya".</p>
+            <div class="feature-card">
+                <h3>Parameter Penilaian:</h3>
+                <ul>
+                    <li><strong>Geo-Priority (40pts):</strong> Bobot lebih tinggi untuk lokasi strategis (Jabodetabek).</li>
+                    <li><strong>Message Depth (20pts):</strong> Menganalisis ketertarikan berdasarkan panjang pesan.</li>
+                    <li><strong>Sentiment Bias (40pts):</strong> Mencari kata kunci "High Intent" (Daftar, Harga, Cicilan).</li>
+                </ul>
+                <p style="margin-top: 15px;"><em>Hasil akhirnya adalah Skor 0-100 yang muncul di dashboard Agen untuk menentukan prioritas telepon pertama hari ini.</em></p>
+            </div>
+        </section>
+
+        <section id="automation">
+            <h2>7. Automation Engine</h2>
+            <h3>Workflow Otomatis 24 Jam</h3>
+            <p>Mesin otomatisasi yang memastikan jamaah mendapatkan respon <strong>di bawah 5 detik</strong> setelah mengisi formulir.</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pemicu (Trigger)</th>
+                            <th>Aksi Otomatis (Action)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Lead Created</code></td>
+                            <td>Kirim Brosur PDF/Digital via WhatsApp & Notifikasi di Dashboard Agen.</td>
+                        </tr>
+                        <tr>
+                            <td><code>High Score Analysis</code></td>
+                            <td>Melampirkan <strong>Premium Digital Brochure</strong> yang relevan dengan paket yang diminati secara otomatis.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Lead Score > 80</code></td>
+                            <td>Segera kirim notifikasi prioritas (Red Alert) ke Manajer Sales.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Idle > 2 Hours</code></td>
+                            <td>Kirim pesan pengingat ke Agen untuk segera memproses calon jamaah.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Status: Booked</code></td>
+                            <td>Sinkronisasi saldo komisi agen secara otomatis.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="analytics">
+            <h2>8. Business Intelligence & ROAS Analysis</h2>
+            <h3>Pengambilan Keputusan Berbasis Data</h3>
+            <p>Dashboard Analitik kami memberikan jawaban atas pertanyaan tersulit: <em>"Berapa keuntungan bersih saya hari ini?"</em></p>
+            
+            <div class="feature-card">
+                <h3>Metrik Utama BI:</h3>
+                <ul>
+                    <li><strong>ROAS (Return on Ad Spend):</strong> Perbandingan antara biaya iklan digital dengan profit paket yang terjual.</li>
+                    <li><strong>CPL (Cost Per Lead):</strong> Berapa biaya rata-rata yang dikeluarkan untuk mendapatkan satu nomor telepon calon jamaah.</li>
+                    <li><strong>Conversion Rate:</strong> Persentase efektivitas tim sales. Jika 100 lead hanya menjadi 1 pendaftar, sistem akan memberi peringatan.</li>
+                    <li><strong>Campaign Audit:</strong> Analisis performa berdasarkan Campaign Meta/Google untuk mengetahui iklan mana yang mendatangkan "sampah" (lead kualitas rendah) dan mana yang mendatangkan "emas".</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>Umrah Hub Aggregator CRM &copy; 2026</p>
+            <p style="font-size: 0.8rem; margin-top: 10px;">Dikembangkan oleh Senior SaaS Architect & Digital Strategist</p>
+        </footer>
+    </main>
+
+    <script>
+        // Simple navigation highlight
+        const links = document.querySelectorAll('.nav-link');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                links.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

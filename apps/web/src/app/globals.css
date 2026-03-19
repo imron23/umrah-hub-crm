@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Premium Dark: Spectral Obsidian */
+  --foreground-rgb: 248, 250, 252;
+  --background-rgb: 8, 8, 12;
+  
+  --bg-app: #08080c;
+  --bg-sidebar: rgba(12, 12, 18, 0.7);
+  --bg-header: rgba(8, 8, 12, 0.6);
+  --bg-card: rgba(20, 20, 28, 0.4);
+  --bg-card-hover: rgba(30, 30, 45, 0.6);
+  --bg-surface: #0a0a0f;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  
+  --border-main: rgba(255, 255, 255, 0.04);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-card-hover: rgba(99, 102, 241, 0.3);
+  
+  --brand-solid: #6366f1;
+  --brand-glow: rgba(99, 102, 241, 0.5);
+  --brand-muted: rgba(99, 102, 241, 0.1);
+  
+  --accent-amber: #f59e0b;
+  --accent-emerald: #10b981;
+}
+
+.light-mode {
+  /* Premium Light: Arctic Silk */
+  --foreground-rgb: 15, 23, 42;
+  --background-rgb: 255, 255, 255;
+  
+  --bg-app: #f8fafc;
+  --bg-sidebar: #f1f5f9;
+  --bg-header: rgba(248, 250, 252, 0.8);
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-surface: #fdfbf7;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --border-main: rgba(0, 0, 0, 0.04);
+  --border-card: rgba(0, 0, 0, 0.06);
+  --border-card-hover: rgba(79, 70, 229, 0.2);
+  
+  --brand-solid: #4f46e5;
+  --brand-glow: rgba(79, 70, 229, 0.3);
+  --brand-muted: rgba(79, 70, 229, 0.05);
+  
+  --accent-amber: #d97706;
+  --accent-emerald: #059669;
+}
+
+.slate-theme {
+  /* Pro Indigo: Deep Space */
+  --foreground-rgb: 241, 245, 249;
+  --background-rgb: 10, 10, 31;
+  
+  --bg-app: #0a0a1f;
+  --bg-sidebar: rgba(16, 16, 46, 0.7);
+  --bg-header: rgba(10, 10, 31, 0.6);
+  --bg-card: rgba(30, 30, 70, 0.3);
+  --bg-card-hover: rgba(45, 45, 95, 0.5);
+  --bg-surface: #070718;
+  
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  
+  --border-main: rgba(255, 255, 255, 0.04);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-card-hover: rgba(56, 189, 248, 0.3);
+  
+  --brand-solid: #38bdf8;
+  --brand-glow: rgba(56, 189, 248, 0.4);
+  --brand-muted: rgba(56, 189, 248, 0.1);
+  
+  --accent-amber: #fbbf24;
+  --accent-emerald: #34d399;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background-color: var(--bg-app);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+  background-attachment: fixed;
+  transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+  min-height: 100vh;
+  letter-spacing: -0.015em;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+}
+
+/* Custom Scrollbar Premium Style */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tighter font-black text-[var(--text-primary)] leading-tight;
+  }
+  
+  .animate-in {
+    animation-duration: 400ms !important;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  input, select, textarea {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    color: var(--text-primary);
+    border-color: var(--border-card);
+  }
+}
+
+@layer components {
+  .linear-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    @apply rounded-[32px] p-8 transition-all duration-300 shadow-2xl shadow-black/20;
+  }
+  .linear-card:hover {
+    border-color: var(--border-card-hover);
+    background-color: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4), 0 0 20px -5px var(--brand-muted);
+  }
+
+  .linear-button {
+    @apply h-10 px-5 flex items-center justify-center rounded-2xl text-[12px] font-bold uppercase tracking-widest transition-all active:scale-[0.95] backdrop-blur-md;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+  }
+  .linear-button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: var(--border-card-hover);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+  }
+  
+  .linear-button-primary {
+    @apply h-10 px-6 flex items-center justify-center text-white rounded-2xl text-[12px] font-black uppercase tracking-widest transition-all active:scale-[0.95];
+    background-color: var(--brand-solid);
+    box-shadow: 0 8px 16px -4px var(--brand-glow);
+  }
+  .linear-button-primary:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 12px 24px -6px var(--brand-glow);
+    transform: translateY(-1px);
+  }
+
+  .linear-input {
+    @apply h-11 px-5 rounded-2xl text-[14px] outline-none transition-all backdrop-blur-md;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-card);
+    color: var(--text-primary);
+  }
+  .linear-input:focus {
+    border-color: var(--brand-solid);
+    background-color: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 4px var(--brand-muted);
+  }
+}
+
+.linear-modal {
+  background-color: rgba(12, 12, 18, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  border-radius: 40px;
+}
+
+/* Strategic Animations */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee-slow {
+  display: inline-flex;
+  animation: marquee 80s linear infinite;
+}
+
+.animate-marquee:hover, .animate-marquee-slow:hover {
+  animation-play-state: paused;
+}

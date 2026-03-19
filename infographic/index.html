@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umrah Marketplace CRM | Strategy & Architecture</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body class="dark-theme">
+    <div class="glass-bg"></div>
+    
+    <header>
+        <div class="logo-container">
+            <span class="logo-icon">🕋</span>
+            <h1>Umrah Hub Aggregator</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#marketing" class="active">Marketing Strategy</a></li>
+                <li><a href="#architecture">System Architecture</a></li>
+                <li><a href="#conversion">Conversion Engine</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- SECTION 1: MARKETING STRATEGY (Based on Pesantren Rule) -->
+        <section id="marketing" class="active-section">
+            <div class="section-header">
+                <span class="badge">E2E Strategy</span>
+                <h2>Strategi Leads Generation <span>100 Santri/Month</span></h2>
+            </div>
+            
+            <div class="grid-container">
+                <div class="card glass animate-up">
+                    <div class="card-icon"><i class="fas fa-bullseye"></i></div>
+                    <h3>Phase 1: Testing</h3>
+                    <p>Testing cinematic video & single images. Budget: 20% (3.6jt).</p>
+                    <ul class="mini-list">
+                        <li>Geo-Fencing: Bogor Radius 20km</li>
+                        <li>Audience: Parents 30-45th</li>
+                    </ul>
+                </div>
+                
+                <div class="card glass animate-up" style="animation-delay: 0.1s;">
+                    <div class="card-icon"><i class="fas fa-rocket"></i></div>
+                    <h3>Phase 2: Scaling</h3>
+                    <p>80% Budget allocation to winners. Retargeting active.</p>
+                    <ul class="mini-list">
+                        <li>Advantage+ Audience</li>
+                        <li>Urgency Content: "Sisa 15 Kursi"</li>
+                    </ul>
+                </div>
+
+                <div class="card featured glass animate-up" style="animation-delay: 0.2s;">
+                    <div class="kpi-score">92%</div>
+                    <h3>Target CAC: Rp180.000</h3>
+                    <div class="progress-bar"><div class="progress" style="width: 85%"></div></div>
+                    <p>Closing Rate: 10% from total leads.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ARCHITECTURE FLOW -->
+        <section id="architecture">
+            <div class="section-header">
+                <span class="badge">Tech Stack</span>
+                <h2>High-Availability <span>Distributed Pipeline</span></h2>
+            </div>
+            
+            <div class="flow-container glass">
+                <div class="flow-step">
+                    <div class="step-circle">1</div>
+                    <h4>Ingestion</h4>
+                    <p>Next.js Landing → Go API</p>
+                </div>
+                <div class="connector"></div>
+                <div class="flow-step">
+                    <div class="step-circle highlight">2</div>
+                    <h4>Scoring</h4>
+                    <p>Redis Queue → Score Worker</p>
+                </div>
+                <div class="connector"></div>
+                <div class="flow-step">
+                    <div class="step-circle">3</div>
+                    <h4>CRM</h4>
+                    <p>Round Robin → Agent Assignment</p>
+                </div>
+                <div class="connector"></div>
+                <div class="flow-step">
+                    <div class="step-circle success">4</div>
+                    <h4>Booking</h4>
+                    <p>Financial Settlement & Ledger</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: CONVERSION ENGINE -->
+        <section id="conversion">
+            <div class="conversion-grid">
+                <div class="form-preview glass">
+                    <h3>Lead Capture Engine</h3>
+                    <div class="input-tag">Name</div>
+                    <div class="input-tag">Phone (WA)</div>
+                    <div class="input-tag">Package Selection</div>
+                    <button class="btn-primary">Generate Lead</button>
+                    <p class="hint">Instant Auto-WA via API triggered.</p>
+                </div>
+                <div class="data-preview glass">
+                    <h3>Agent Profiling AI</h3>
+                    <ul class="check-list">
+                        <li><span class="dot"></span> Program Tahfizh / Umrah VIP</li>
+                        <li><span class="dot"></span> Kenyamanan (Asrama/Hotel)</li>
+                        <li><span class="dot"></span> Financial Plan (Cicilan)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Antigravity x Umrah Hub. Premium Architectural Blueprint.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

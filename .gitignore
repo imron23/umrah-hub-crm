@@ -1,0 +1,30 @@
+# General
+node_modules/
+.DS_Store
+*.log
+
+# Apps - Web
+apps/web/.next/
+apps/web/out/
+apps/web/build/
+apps/web/.turbo/
+
+# Apps - API
+apps/api/bin/
+apps/api/tmp/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage
+coverage/

@@ -1,0 +1,33 @@
+# Version control
+.git
+.gitignore
+
+# Node
+apps/web/node_modules
+apps/web/.next
+apps/web/.env*.local
+
+# Go build artifacts
+apps/api/tmp
+
+# OS & Editor
+.DS_Store
+**/.DS_Store
+.vscode
+.idea
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Docker files (don't include in build context)
+docker-compose.yml
+
+# Documentation & extras
+dokumentasi/
+infographic/
+
+# Misc
+*.md
+!README.md

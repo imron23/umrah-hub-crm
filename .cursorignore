@@ -1,0 +1,66 @@
+# AI Ignore Configuration - Performance Optimization
+# This file prevents AI agents from scanning unnecessary files, 
+# drastically improving token efficiency and context relevance.
+
+# Dependencies
+node_modules/
+**/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build Outputs & Cache
+.next/
+dist/
+build/
+out/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Logs & Temporary Files
+*.log
+logs/
+tmp/
+.temp/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Secrets (NEVER scan these)
+.env
+.env.*
+!.env.example
+secrets.json
+*.pem
+*.key
+
+# IDE & OS Specific
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Media & Heavy Assets (AI doesn't need to 'read' binaries)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.mp4
+*.webm
+*.pdf
+*.zip
+*.gz
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Metadata
+.git/
+.gitignore
+.dockerignore

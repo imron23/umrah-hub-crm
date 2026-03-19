@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umrah Hub Intelligence Upgrade - Infographic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5865F2;
+            --secondary: #00D1FF;
+            --accent: #FF00E5;
+            --bg: #0B0E14;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text: #FFFFFF;
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --slate-blue: #3A4750;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .glow {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(88, 101, 242, 0.2) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .tag {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .metric-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .metric-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 2s ease-in-out;
+        }
+
+        .features {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .features li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-dim);
+        }
+
+        .features li::before {
+            content: "✓";
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .big-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text);
+            margin: 20px 0;
+        }
+
+        footer {
+            margin-top: 80px;
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cta-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            transition: transform 0.3s;
+            box-shadow: 0 10px 20px rgba(88, 101, 242, 0.3);
+        }
+
+        .cta-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate {
+            animation: fadeIn 0.8s forwards;
+        }
+
+        /* Funnel Simulation CSS */
+        .funnel-container {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .funnel-layer {
+            height: 40px;
+            margin-bottom: 5px;
+            background: var(--primary);
+            opacity: 0.8;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: width 1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="glow"></div>
+            <div class="animate" style="animation-delay: 0.1s;">
+                <p class="subtitle">Platform Evolution</p>
+                <h1>UMRAH HUB INTELLIGENCE</h1>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Lead Scoring -->
+            <div class="card animate" style="animation-delay: 0.2s;">
+                <div class="card-icon">🎯</div>
+                <h2>Smart Lead Scoring</h2>
+                <p>AI-driven evaluation based on recency, location, and campaign value.</p>
+                <div class="big-number">0 - 100</div>
+                <div class="metric-bar"><div class="metric-fill" id="scoring-fill"></div></div>
+                <ul class="features">
+                    <li>Dynamic Priority Assignment</li>
+                    <li>Hot/Warm/Cold Segmentation</li>
+                    <li>Automatic Lead Routing</li>
+                </ul>
+                <div class="tag-list">
+                    <span class="tag">AI Worker</span>
+                    <span class="tag">Priority Logic</span>
+                </div>
+            </div>
+
+            <!-- Marketing Attribution -->
+            <div class="card animate" style="animation-delay: 0.3s;">
+                <div class="card-icon">📊</div>
+                <h2>Advanced Attribution</h2>
+                <p>Track every touchpoint from Click to Booking with deep funnel visibility.</p>
+                <ul class="features" style="margin-top: 30px;">
+                    <li>UTM Detail (Medium, Term, Content)</li>
+                    <li>Ad ID Tracking (FBCLID, GCLID)</li>
+                    <li>Referrer & Device Fingerprinting</li>
+                    <li>Multi-touch Attribution Models</li>
+                </ul>
+                <div class="tag-list" style="margin-top: 45px;">
+                    <span class="tag">UTM PRO</span>
+                    <span class="tag">GA4 Sync</span>
+                </div>
+            </div>
+
+            <!-- Automation Engine -->
+            <div class="card animate" style="animation-delay: 0.4s;">
+                <div class="card-icon">⚡</div>
+                <h2>Automation Engine</h2>
+                <p>Trigger-based actions that eliminate manual task bottlenecks.</p>
+                <div class="funnel-container">
+                    <div class="funnel-layer" style="width: 100%;">Lead Captured</div>
+                    <div class="funnel-layer" style="width: 80%;">Auto Scored</div>
+                    <div class="funnel-layer" style="width: 60%;">Agent Assigned</div>
+                    <div class="funnel-layer" style="width: 40%;">WA Notification</div>
+                </div>
+                <ul class="features">
+                    <li>Real-time WA Notifications</li>
+                    <li>Manager Alerts for Idle Leads</li>
+                    <li>Automated Nurture Flows</li>
+                </ul>
+            </div>
+
+            <!-- Business Intelligence -->
+            <div class="card animate" style="animation-delay: 0.5s;">
+                <div class="card-icon">📈</div>
+                <h2>Profit Intelligence</h2>
+                <p>Real-time ROAS and profitability tracking for every campaign and vendor.</p>
+                <div class="big-number">+315% <span style="font-size: 1rem; color: var(--secondary);">ROAS Target</span></div>
+                <ul class="features">
+                    <li>Cost per Lead (CPL) Analysis</li>
+                    <li>Profit per Package Tracking</li>
+                    <li>Vendor Conversion Leaderboard</li>
+                </ul>
+                <div class="tag-list">
+                    <span class="tag">PostgreSQL Aggregator</span>
+                    <span class="tag">Real-time</span>
+                </div>
+            </div>
+
+            <!-- Sales Performance -->
+            <div class="card animate" style="animation-delay: 0.6s;">
+                <div class="card-icon">🕴️</div>
+                <h2>Sales Dashboard</h2>
+                <p>Monitor agent performance with precision metrics and call tracking.</p>
+                <ul class="features" style="margin-top: 20px;">
+                    <li>Call Log Duration & Results</li>
+                    <li>Response Time Monitoring</li>
+                    <li>Conversion Rate per Agent</li>
+                    <li>Smart Capacity Routing</li>
+                </ul>
+                <div class="tag-list">
+                    <span class="tag">Call Tracking</span>
+                    <span class="tag">Agent KPI</span>
+                </div>
+            </div>
+
+            <!-- Infrastructure -->
+            <div class="card animate" style="animation-delay: 0.7s;">
+                <div class="card-icon">☁️</div>
+                <h2>Architecture 2.0</h2>
+                <p>Scalable Golang backend with Redis-backed async workers.</p>
+                <ul class="features" style="margin-top: 20px;">
+                    <li>Redis Queue Management</li>
+                    <li>Async Analytics Aggregator</li>
+                    <li>PostgreSQL Performance Indexing</li>
+                    <li>Nginx High-Performance Proxy</li>
+                </ul>
+                <div class="tag-list">
+                    <span class="tag">Go + Redis</span>
+                    <span class="tag">Scalable</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <a href="index.html" class="cta-btn">Review Master Documentation</a>
+            <p style="margin-top: 30px; color: var(--text-dim); font-size: 0.9rem;">
+                This upgrade transforms Umrah Hub from a simple CRM to a Marketing Powerhouse.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const fill = document.getElementById('scoring-fill');
+                if(fill) fill.style.width = '85%';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
