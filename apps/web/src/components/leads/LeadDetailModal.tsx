@@ -19,7 +19,18 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
   const [showIdentitySettings, setShowIdentitySettings] = useState(false);
 
   // States for Editing Lead Info
-  const [editData, setEditData] = useState({ name: '', phone: '', city: '', status: '', lead_score: 0, progressNote: '' });
+  const [editData, setEditData] = useState({ 
+    name: '', 
+    phone: '', 
+    city: '', 
+    age: 0,
+    group_type: '',
+    lead_emotion: 'curious',
+    lead_life_context: '',
+    status: '', 
+    lead_score: 0, 
+    progressNote: '' 
+  });
 
   // AI Outreach States
   const [voiceTone, setVoiceTone] = useState('empathetic');
@@ -62,6 +73,10 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
             name: data.lead.name,
             phone: data.lead.phone,
             city: data.lead.city,
+            age: data.lead.age,
+            group_type: data.lead.group_type,
+            lead_emotion: data.lead.lead_emotion || 'curious',
+            lead_life_context: data.lead.lead_life_context || '',
             status: data.lead.status,
             lead_score: data.lead.lead_score,
             progressNote: ''
@@ -90,6 +105,10 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
             name: editData.name,
             phone: editData.phone,
             city: editData.city,
+            age: parseInt(editData.age.toString()),
+            group_type: editData.group_type,
+            lead_emotion: editData.lead_emotion,
+            lead_life_context: editData.lead_life_context,
             status: editData.status
         };
 
@@ -197,8 +216,10 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                 leadName: lead?.name,
                 preference: details.content,
                 score: lead?.score,
-                age: details.age,
-                family: details.companions,
+                age: lead.age || details.age,
+                family: lead.group_type || details.companions,
+                emotion: lead.lead_emotion,
+                lifeContext: lead.lead_life_context,
                 notes: pastNotes
             })
         });
@@ -346,28 +367,62 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                             </div>
                             
                             <div className="bg-brand-500/5 p-5 rounded-2xl border border-brand-500/10 space-y-4">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-brand-400">Commit Funnel Stage</label>
-                                    <select 
-                                        value={editData.status}
-                                        onChange={e => setEditData({...editData, status: e.target.value})}
-                                        className="bg-surface border border-border-card text-sm font-black text-text-primary w-full px-6 py-4 rounded-2xl outline-none focus:border-brand-500/40 transition-all appearance-none uppercase tracking-wider"
-                                    >
-                                        <option value="new">🆕 NEW</option>
-                                        <option value="contacted">📞 CONTACTED</option>
-                                        <option value="prospect">📋 PROSPECT</option>
-                                        <option value="processed">⚙️ PROCESSED</option>
-                                        <option value="dp">💳 DOWN PAYMENT (DP)</option>
-                                        <option value="closing">💰 FULL CLOSING</option>
-                                        <option value="lost">❌ LOST LEAD</option>
-                                    </select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-brand-400">Prospect Mood</label>
+                                        <div className="flex gap-2">
+                                            {[
+                                                { id: 'happy', icon: '😊' },
+                                                { id: 'curious', icon: '🤔' },
+                                                { id: 'skeptical', icon: '🤨' },
+                                                { id: 'nervous', icon: '😰' },
+                                                { id: 'urgent', icon: '🔥' }
+                                            ].map(m => (
+                                                <button
+                                                    key={m.id}
+                                                    onClick={() => setEditData({ ...editData, lead_emotion: m.id })}
+                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all ${editData.lead_emotion === m.id ? 'bg-brand-500 scale-110 shadow-lg' : 'bg-white/5 hover:bg-white/10'}`}
+                                                    title={m.id.toUpperCase()}
+                                                >
+                                                    {m.icon}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-brand-400">Commit Funnel Stage</label>
+                                        <select 
+                                            value={editData.status}
+                                            onChange={e => setEditData({...editData, status: e.target.value})}
+                                            className="bg-surface border border-border-card text-sm font-black text-text-primary w-full px-4 py-3 rounded-xl outline-none focus:border-brand-500/40 transition-all appearance-none uppercase tracking-wider"
+                                        >
+                                            <option value="new">🆕 NEW</option>
+                                            <option value="contacted">📞 CONTACTED</option>
+                                            <option value="prospect">📋 PROSPECT</option>
+                                            <option value="processed">⚙️ PROCESSED</option>
+                                            <option value="dp">💳 DOWN PAYMENT (DP)</option>
+                                            <option value="closing">💰 FULL CLOSING</option>
+                                            <option value="lost">❌ LOST LEAD</option>
+                                        </select>
+                                    </div>
                                 </div>
+                                
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-brand-400">Personal Context (The "Why")</label>
+                                    <input 
+                                        value={editData.lead_life_context}
+                                        onChange={e => setEditData({...editData, lead_life_context: e.target.value})}
+                                        className="bg-surface border border-border-card text-sm font-medium text-text-primary w-full px-5 py-3 rounded-xl outline-none focus:border-brand-500/40 transition-all"
+                                        placeholder="e.g. Nazar, Hadiah untuk Orang Tua, Keberangkatan Pertama..."
+                                    />
+                                </div>
+
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-brand-400">Daily Progress Note (Optional)</label>
                                     <textarea 
                                         value={editData.progressNote}
                                         onChange={e => setEditData({...editData, progressNote: e.target.value})}
-                                        className="bg-surface border border-border-card text-sm font-medium text-text-secondary w-full px-6 py-4 rounded-2xl outline-none focus:border-brand-500/40 transition-all min-h-[80px] resize-none"
+                                        className="bg-surface border border-border-card text-sm font-medium text-text-secondary w-full px-5 py-3 rounded-xl outline-none focus:border-brand-500/40 transition-all min-h-[60px] resize-none"
                                         placeholder="Catatan follow-up hari ini..."
                                     />
                                 </div>
@@ -568,6 +623,37 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                             <div className="space-y-2 pt-2">
                                 <button onClick={() => setShowIdentitySettings(!showIdentitySettings)} className={`w-full py-4 rounded-2xl border text-[9px] font-black uppercase tracking-widest transition-all ${showIdentitySettings ? 'bg-brand-500/10 border-brand-500/40 text-brand-400' : 'bg-surface border-border-card text-text-muted hover:text-text-primary'}`}>{showIdentitySettings ? 'Close Identity Layer' : 'Adjust CS Signature'}</button>
                             </div>
+
+                            {/* Qualitative Metrics Section */}
+                            <div className="bg-card/40 border border-border-card rounded-[2rem] p-5 space-y-4">
+                                <p className="text-[10px] font-black text-brand-400 uppercase tracking-widest px-2">Strategic Qualitative Dossier</p>
+                                
+                                {/* Sentiment Badge */}
+                                <div className="flex flex-col gap-1 px-2">
+                                    <span className="text-[8px] text-text-muted font-bold uppercase tracking-wider">Mood Indicator</span>
+                                    <div className="flex items-center gap-3 mt-1 bg-white/5 p-2 rounded-xl border border-white/5">
+                                        <span className="text-lg">{lead.lead_emotion === 'urgent' ? '🔥' : lead.lead_emotion === 'happy' ? '😊' : lead.lead_emotion === 'skeptical' ? '🤨' : lead.lead_emotion === 'nervous' ? '😰' : '🤔'}</span>
+                                        <span className="text-[10px] font-black text-text-primary uppercase tracking-widest">{lead.lead_emotion || "Pending"}</span>
+                                    </div>
+                                </div>
+
+                                {/* Manifestation Link */}
+                                <div className="flex flex-col gap-1 px-2">
+                                    <span className="text-[8px] text-text-muted font-bold uppercase tracking-wider">Current Intent Matrix</span>
+                                    <div className="mt-1 bg-brand-500/5 border border-brand-500/20 p-3 rounded-xl min-h-[50px] flex items-center justify-center">
+                                        <p className="text-[10px] font-black italic text-brand-300 text-center uppercase tracking-tight">"{lead.lead_life_context || "Awaiting context..."}"</p>
+                                    </div>
+                                </div>
+
+                                {/* Status Quick Conversion */}
+                                <div className="flex flex-wrap gap-2 px-2 mt-4">
+                                    <span className="text-[8px] text-text-muted font-bold uppercase tracking-wider w-full mb-1">Qualitative Labels</span>
+                                    {lead.lead_life_context?.toLowerCase().includes('nazar') && <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[8px] font-black rounded-lg border border-emerald-500/20">🙏 NAZAR</span>}
+                                    {lead.age > 55 && <span className="px-2 py-1 bg-violet-500/10 text-violet-400 text-[8px] font-black rounded-lg border border-violet-500/20">👴 ELDERLY CARE</span>}
+                                    {lead.group_type === 'family' && <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-[8px] font-black rounded-lg border border-blue-500/20">👨‍👩‍👧 GROUP TRIP</span>}
+                                    {lead.lead_emotion === 'urgent' && <span className="px-2 py-1 bg-rose-500/10 text-rose-400 text-[8px] font-black rounded-lg border border-rose-500/20">🚀 HIGH PRIORITY</span>}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -578,12 +664,23 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 blur-[100px] pointer-events-none" />
 
                              {/* WA Header */}
-                             <div className="bg-card px-8 py-5 flex items-center justify-between shrink-0 z-10 border-b border-border-card shadow-sm">
+                              <div className="bg-card px-8 py-5 flex items-center justify-between shrink-0 z-10 border-b border-border-card shadow-sm">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 border border-slate-600 flex items-center justify-center text-white text-sm font-bold">{lead.name[0]}</div>
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-lg border transition-all ${
+                                        lead.lead_emotion === 'happy' ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 
+                                        lead.lead_emotion === 'urgent' ? 'bg-rose-500/20 border-rose-500/40 text-rose-400' : 
+                                        lead.lead_emotion === 'skeptical' ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' :
+                                        'bg-slate-700/20 border-white/10 text-white'
+                                    }`}>
+                                        {lead.lead_emotion === 'happy' ? '😊' : lead.lead_emotion === 'curious' ? '🤔' : lead.lead_emotion === 'skeptical' ? '🤨' : lead.lead_emotion === 'nervous' ? '😰' : lead.lead_emotion === 'urgent' ? '🔥' : '🤔'}
+                                    </div>
                                     <div>
                                         <p className="text-xs font-black text-text-primary italic tracking-tight">{lead.name}</p>
-                                        <p className="text-[9px] text-brand-500 font-bold uppercase tracking-widest">Client Connect</p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[8px] text-brand-500 font-bold uppercase tracking-widest">{lead.lead_life_context || "Initial Exploration"}</span>
+                                            <span className="text-white/10">|</span>
+                                            <span className={`text-[8px] font-black uppercase ${lead.lead_emotion === 'urgent' ? 'text-rose-400' : 'text-text-muted'}`}>{lead.lead_emotion || "Status: Profiling"}</span>
+                                        </div>
                                     </div>
                                 </div>
                              </div>

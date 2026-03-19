@@ -10,10 +10,12 @@ type Lead struct {
 	ID          uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	Name        string    `gorm:"size:100;not null" json:"name"`
 	Phone       string    `gorm:"size:20;not null" json:"phone"`
-	City        string    `gorm:"size:100" json:"city"`
-	Age         int       `gorm:"default:0" json:"age"`
-	GroupType   string    `gorm:"size:50" json:"group_type"` // individual, couple, family
-	Message     string    `gorm:"type:text" json:"message"`
+	City            string    `gorm:"size:100" json:"city"`
+	Age             int       `gorm:"default:0" json:"age"`
+	GroupType       string    `gorm:"size:50" json:"group_type"`
+	LeadEmotion     string    `gorm:"size:50" json:"lead_emotion"`      // happy, nervous, curious, skeptical, urgent
+	LeadLifeContext string    `gorm:"type:text" json:"lead_life_context"` // e.g., "Membayar nazar", "Hadiah untuk orang tua"
+	Message         string    `gorm:"type:text" json:"message"`
 	PackageID   uuid.UUID `gorm:"type:uuid" json:"package_id"`
 	VendorID    uuid.UUID `gorm:"type:uuid" json:"vendor_id"`
 	Status       string    `gorm:"size:50;default:'new'" json:"status"`

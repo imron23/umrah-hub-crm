@@ -24,10 +24,12 @@ func NewLeadHandler(repo repository.LeadRepository, service service.LeadService)
 type CreateLeadRequest struct {
 	Name      string    `json:"name" binding:"required"`
 	Phone     string    `json:"phone" binding:"required"`
-	City      string    `json:"city"`
-	Age       int       `json:"age"`
-	GroupType string    `json:"group_type"`
-	Message   string    `json:"message"`
+	City            string    `json:"city"`
+	Age             int       `json:"age"`
+	GroupType       string    `json:"group_type"`
+	LeadEmotion     string    `json:"lead_emotion"`
+	LeadLifeContext string    `json:"lead_life_context"`
+	Message         string    `json:"message"`
 	PackageID uuid.UUID `json:"package_id"`
 	UTM       struct {
 		Source   string `json:"source"`
@@ -48,11 +50,13 @@ func (h *LeadHandler) CreatePublicLead(c *gin.Context) {
 		ID:        uuid.New(),
 		Name:      req.Name,
 		Phone:     req.Phone,
-		City:      req.City,
-		Age:       req.Age,
-		GroupType: req.GroupType,
-		Message:   req.Message,
-		PackageID: req.PackageID,
+		City:            req.City,
+		Age:             req.Age,
+		GroupType:       req.GroupType,
+		LeadEmotion:     req.LeadEmotion,
+		LeadLifeContext: req.LeadLifeContext,
+		Message:         req.Message,
+		PackageID:       req.PackageID,
 		Status:    "new",
 	}
 
@@ -153,6 +157,10 @@ func (h *LeadHandler) UpdateLead(c *gin.Context) {
 	lead.Name = req.Name
 	lead.Phone = req.Phone
 	lead.City = req.City
+	lead.Age = req.Age
+	lead.GroupType = req.GroupType
+	lead.LeadEmotion = req.LeadEmotion
+	lead.LeadLifeContext = req.LeadLifeContext
 	lead.Status = req.Status
 	lead.LeadScore = req.LeadScore
 
