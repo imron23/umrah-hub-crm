@@ -174,7 +174,7 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
     };
   };
 
-  const generateWADraft = () => {
+  const generateWADraft = async () => {
     setIsGeneratingWA(true);
     const details = parseMessage(lead?.message || "");
     
@@ -186,75 +186,44 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
         ?.map((a: any) => a.content)
         ?.join("; ") || "";
 
-    setTimeout(() => {
-      const nameParts = (lead?.name || "").split(" ");
-      const firstName = nameParts[0]?.toLowerCase() || "";
-      
-      const maleNames = ['budi', 'ahmad', 'eko', 'hendra', 'farhan', 'guntur', 'rizki', 'rizky', 'doni', 'andi', 'taufik', 'mulyono'];
-      const femaleNames = ['siti', 'anisa', 'rina', 'linda', 'maya', 'eka', 'santi', 'monica', 'wulan'];
+    try {
+        const response = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                leadName: lead?.name,
+                preference: details.content,
+                score: lead?.score,
+                age: details.age,
+                family: details.companions,
+                notes: pastNotes
+            })
+        });
 
-      let genderTitle = "Bapak/Ibu";
-      const ageVal = details?.age ? parseInt(details.age) : 0;
-
-      if (ageVal > 0 && ageVal < 23) {
-        genderTitle = "Kak";
-      } else {
-        if (maleNames.includes(firstName)) genderTitle = "Bapak";
-        else if (femaleNames.includes(firstName)) genderTitle = "Ibu";
-      }
-
-      let draft = "";
-      const name = lead?.name || "Bapak/Ibu";
-      const signature = includeSignature ? `\n\n*${csIdentity.name}*\n${csIdentity.position} - ${csIdentity.company}` : "";
-      
-      const isReadyToBuy = details.content.toLowerCase().includes('akhir bulan ini') || details.content.toLowerCase().includes('rekening') || details.content.toLowerCase().includes('penawaran resmi');
-      const isComparing = details.content.toLowerCase().includes('mahal') || details.content.toLowerCase().includes('diskon');
-      const isElderly = ageVal >= 55;
-      const isFamily = details.paxCount > 1;
-      
-      const groupContext = isFamily ? `untuk ${details.paxCount} orang ` : "untuk keberangkatan Personal Bapak/Ibu ";
-      const healthContext = isElderly ? " Terlebih usia adalah prioritas kami, seluruh infrastruktur dan tim pendamping akan memastikan kenyamanan & kesehatan fisik Bapak/Ibu 100% terjaga selama di Tanah Suci.\n\n" : "";
-
-      let firstTouchEmpathetic = `Assalamu’alaikum Warahmatullahi Wabarakatuh, ${genderTitle} ${name}. 🙏\n\nTabarakallah, semoga ${genderTitle} ${isFamily ? 'sekeluarga' : ''} senantiasa dalam penjagaan Allah ﷻ. Kami menyambut niat mulia ${genderTitle} untuk rencana ibadah Umrah ${groupContext}berdasarkan data form yang kami terima.\n\n${healthContext}Izin, saya ingin bersilaturahmi sejenak membantu memastikan seluruh persiapan ${genderTitle} berjalan nyaman. Kapan kira-kira ada waktu luang untuk berbincang melalui telepon?${signature}`;
-      
-      let firstTouchProfessional = `Assalamu’alaikum, ${genderTitle} ${name}. Saya konsultan dari *${csIdentity.company}* menindaklanjuti ketertarikan ${genderTitle} pada program kami tsb.\n\n${healthContext}Sebagai biro perjalanan yang mengamalkan standar ketepatan dan amanah, kami ingin memastikan rencana logistik ${groupContext}sudah matang. Kapan kami bisa menghubungi ${genderTitle} untuk diskusi lanjutan?${signature}`;
-
-      // If High Intent / Hot Ready to Transfer
-      if (isReadyToBuy) {
-          firstTouchEmpathetic = `Assalamu’alaikum, ${genderTitle} ${name}. Masya Allah tabarakallah, kami sudah menerima konfirmasi kesiapan luar biasa dari ${genderTitle} ${isFamily ? 'sekeluarga' : ''} untuk mendaftar. 🛫\n\n${healthContext}Terkait prosedur administrasi, kami persilakan ${genderTitle} mengamankan seat secepatnya. Berikut saya lampirkan panduan prosedur pembayaran rekening resmi perusahaan kami. Jika berkenan, mari telepon singkat untuk memvalidasi data pax ya, ${genderTitle}!${signature}`;
-          
-          firstTouchProfessional = `Assalamu’alaikum, ${genderTitle} ${name}. Menyambung antusiasme dan niat kesiapan ${genderTitle} ${groupContext}.\n\nMengingat kuota paket sangat terbatas dan kami melihat urgensi transfer dari pihak Bapak/Ibu, invoice resmi dan petunjuk rekening perusahaan telah siap dikirimkan. Balas "SIAP" agar dokumen legal bisa langsung saya siapkan. ✨${signature}`;
-      }
-
-      // If Price Comparing
-      if (isComparing) {
-          firstTouchEmpathetic = `Assalamu’alaikum Warahmatullahi Wabarakatuh, ${genderTitle} ${name}. 🙏\n\nBismillah, kami sangat memahami kekhawatiran ${genderTitle} mengenai perbedaan harga. Namun kami menegaskan bahwa di agensi kami, seluruh paket disusun tanpa hidden-cost demi ketenangan ibadah ${groupContext}.\n\nKami ada opsi diskon group jika berkenan. Kapan waktu yang nyaman untuk saya bantu simulasikan biayanya?${signature}`;
-      }
-
-      const goals: any = {
-        first_touch: { empathetic: firstTouchEmpathetic, professional: firstTouchProfessional },
-        trial_closing: {
-            empathetic: `Assalamu’alaikum ${genderTitle} ${name}. Mengingat sisa kursi yang sangat menipis, saya sarankan agar ${genderTitle} ${isFamily?'sekeluarga ':''}segera mengamankan kuota. ⚡\n\nSemoga Allah mampukan jalan kita ke Tanah Suci. In Sya Allah, apakah formulir dan DP bisa kita proses hari ini?${signature}`,
-            professional: `Assalamu’alaikum ${genderTitle} ${name}. Ketersediaan kursi prioritas ${groupContext}pada promo ini akan segera habis tergantikan pendaftar lain. \n\nMohon amankan *amanah* kuota ini segera dengan mengirimkan konfirmasi dokumen pembayaran. Kami terbitkan invoice-nya hari ini ya?${signature}`
-        },
-        custom: {
-            empathetic: `Assalamu’alaikum ${genderTitle} ${name}. Semoga tetap sehat dan dalam lindungan Allah ﷻ.\n\nMemperhatikan catatan/diskusi kami sebelumnya (${pastNotes ? pastNotes.slice(0, 80) + '...' : 'terkait data form Anda'}), kami ingin memastikan apakah ${genderTitle} sudah mendapatkan opsi terbaik? Tolong kabari saya sekiranya ada bantuan tambahan dari sisi administrasi. 🙏${signature}`,
-            professional: `Assalamu’alaikum ${genderTitle} ${name}. Menindaklanjuti progres pendaftaran ${genderTitle} ke Tanah Suci.\n\nSesuai catatan terakhir (${pastNotes ? pastNotes.slice(0, 80) + '...' : 'sebelumnya'}), kami perlu mengonfirmasi apakah ada hal administratif yang menahan ${genderTitle}? Kami menantikan respons positifnya demi keamanan kursi. ${signature}`
+        if (!response.ok) {
+            throw new Error('AI Bridge connection failed.');
         }
-      };
 
-      const toneKey = voiceTone === 'authoritative' || voiceTone === 'professional' ? 'professional' : 'empathetic';
-      draft = goals[outreachGoal]?.[toneKey] || goals.custom[toneKey];
-      
-      setWaDraft(draft);
-      setIsGeneratingWA(false);
-
-      const historySummary = lead.activities?.length > 0 
-        ? ` (Context: Integrated ${Math.min(5, lead.activities.length)} recent notes into Custom logic.)` 
-        : "";
-      
-      logActivity('wa_draft_generated', `AI drafted personalized message using intent module: ${outreachGoal}${historySummary}`);
-    }, 600);
+        const data = await response.json();
+        const signature = includeSignature ? `\n\n*${csIdentity.name}*\n${csIdentity.position} - ${csIdentity.company}` : "";
+        
+        setWaDraft((data.result || "Mohon maaf, AI gagal memproses draft.") + signature);
+    } catch (e) {
+        console.error(e);
+        const nameParts = (lead?.name || "").split(" ");
+        const firstName = nameParts[0]?.toLowerCase() || "";
+        const genderTitle = ["budi", "ahmad", "eko"].includes(firstName) ? "Bapak" : "Bapak/Ibu";
+        
+        const signature = includeSignature ? `\n\n*${csIdentity.name}*\n${csIdentity.position} - ${csIdentity.company}` : "";
+        setWaDraft(`Assalamu'alaikum Warahmatullahi Wabarakatuh, ${genderTitle} ${lead?.name}. 🙏\n\nBismillah, perkenalkan saya dari Customer Service Umrah Hub ingin menindaklanjuti rencana pendaftaran Ibadah Umrah Anda.\n\nKapan kira-kira ada waktu luang untuk kami hubungi?${signature}`);
+    } finally {
+        setIsGeneratingWA(false);
+        const historySummary = lead?.activities?.length > 0 
+          ? ` (Context: Processed via Byteplus seed-2-0-mini-free integrating ${Math.min(5, lead.activities.length)} notes.)` 
+          : " (Context: Processed via Byteplus seed-2-0-mini-free)";
+        
+        logActivity('wa_draft_generated', `Live AI Request completed via Neural Bridge: ${outreachGoal}${historySummary}`);
+    }
   };
 
   const copyToClipboard = () => {

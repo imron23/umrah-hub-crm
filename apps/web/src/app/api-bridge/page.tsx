@@ -20,6 +20,7 @@ const VENDORS = [
     { name: 'Twilio', type: 'sms', icon: '✉️' },
     { name: 'Mailgun', type: 'email', icon: '📧' },
     { name: 'SendGrid', type: 'email', icon: '📤' },
+    { name: 'Byteplus AI', type: 'nlp', icon: '🧠' },
     { name: 'Meta CAPI', type: 'conversion', icon: '🎯' },
     { name: 'Custom Hook', type: 'webhook', icon: '🔗' },
 ];
@@ -36,9 +37,20 @@ export default function APIBridgePage() {
 
     const fetchConfigs = async () => {
         try {
-            const res = await fetch('http://localhost:8081/api/v1/public/api-configs');
-            const data = await res.json();
-            setConfigs(data.configs || []);
+            // Mocking data since DB table 'api_configs' handles are not yet defined
+            const mockData = [
+                {
+                    id: "evt-byte",
+                    vendor_name: "Byteplus AI",
+                    provider_type: "nlp",
+                    api_key: "sk-_WZk981NpEyRqeApOT1f3A",
+                    api_secret: "",
+                    endpoint: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+                    status: "active",
+                    priority: 1
+                }
+            ];
+            setConfigs(mockData as any);
         } catch (err) {
             console.error(err);
         } finally {
