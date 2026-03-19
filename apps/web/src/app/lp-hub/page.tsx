@@ -22,10 +22,15 @@ export default function LPHub() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
     try {
       const res = await fetch(`${apiUrl}/public/lps`);
+      if (!res.ok) throw new Error("API Offline");
       const data = await res.json();
       setLps(data.lps || []);
     } catch (err) {
-      console.error(err);
+      console.error("LPHub Fetch Error:", err);
+      // Optional: set dummy data if fetch fails for demo
+      setLps([
+        { id: 'trial-1', name: 'Umrah Hub Premium Funnel', slug: 'lp_standard_demo', status: 'active', created_at: new Date().toISOString() }
+      ]);
     } finally {
       setLoading(false);
     }

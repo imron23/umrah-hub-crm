@@ -8,7 +8,10 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
-  const isAuthOrMarketing = pathname.startsWith('/login') || pathname.startsWith('/lp') || pathname.startsWith('/promo');
+  const isAuthOrMarketing = 
+    pathname.startsWith('/login') || 
+    (pathname.startsWith('/lp') && !pathname.startsWith('/lp-hub')) || 
+    pathname.startsWith('/promo');
 
   if (isAuthOrMarketing) {
     return <>{children}</>;

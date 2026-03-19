@@ -476,5 +476,19 @@ func main() {
 		}
 	}
 
+	// 8. Landing Pages
+	lpData := []struct{ Name, Slug string }{
+		{"Universal Umrah Funnel", "lp_universal_v1"},
+		{"Ramadhan Special Page", "lp_ramadhan_2026"},
+		{"Flash Sale 7 Days", "lp_flash_sale"},
+		{"Haji Furoda Luxury", "lp_furoda_luxury"},
+	}
+	for _, lpd := range lpData {
+		db.DB.Create(&crm.LandingPage{
+			ID: uuid.New(), Name: lpd.Name, Slug: lpd.Slug, 
+			Status: "active", CreatedAt: now,
+		})
+	}
+
 	fmt.Println("🎉 Database Seeding w/ 5 Vendor Tiers & AI Prefs Injection Complete!")
 }
