@@ -387,6 +387,7 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                                         <option value="processed">⚙️ PROCESSED</option>
                                         <option value="dp">💳 DOWN PAYMENT (DP)</option>
                                         <option value="closing">💰 FULL CLOSING</option>
+                                        <option value="lost">❌ LOST LEAD</option>
                                     </select>
                                 </div>
                                 <div className="flex flex-col gap-2">

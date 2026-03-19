@@ -63,6 +63,7 @@ export default function LeadsTable({ leadsData, loading }: { leadsData?: any[], 
                       <option value="prospect">PROSPECT</option>
                       <option value="dp">DP</option>
                       <option value="closing">CLOSING</option>
+                      <option value="lost">LOST</option>
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-text-muted pointer-events-none">▼</div>
               </div>
@@ -144,6 +145,7 @@ export default function LeadsTable({ leadsData, loading }: { leadsData?: any[], 
                               lead.status === 'booked' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' :
                               lead.status === 'dp' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 
                               lead.status === 'closing' ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 
+                              lead.status === 'lost' ? 'bg-red-500/10 border-red-500/30 text-red-500' : 
                               'bg-slate-500/10 border-slate-500/30 text-slate-400'
                           }`}>
                               {lead.status || 'UNKNOWN'}
