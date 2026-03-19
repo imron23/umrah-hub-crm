@@ -133,6 +133,9 @@ export default function Dashboard() {
   }, []);
 
   // 6. Intelligence: Historical FX (Crypto Style)
+  const [fxStatus, setFxStatus] = useState<'live' | 'syncing' | 'error'>('syncing');
+  const [fxChange, setFxChange] = useState({ sar: 0, usd: 0 });
+
   useEffect(() => {
      const end = new Date();
      let start = new Date();
@@ -143,16 +146,40 @@ export default function Dashboard() {
      else start.setDate(end.getDate() - 1); // 1D
 
      const startStr = start.toISOString().split('T')[0];
+     setFxStatus('syncing');
+     
      fetch(`https://api.frankfurter.app/${startStr}..?from=USD&to=IDR`)
-       .then(r => r.json())
+       .then(r => {
+           if (!r.ok) throw new Error("Frankfurter Down");
+           return r.json();
+       })
        .then(data => {
            const labels = Object.keys(data.rates);
            const values = Object.values(data.rates).map((v: any) => v.IDR);
-           setUsdHistory({ labels, data: values });
            
-           // SAR PEG CALCULATION (Real Market Logic: 3.75 SAR = 1 USD)
-           const sarValues = values.map((v: number) => Math.round(v / 3.75));
-           setSarHistory({ labels, data: sarValues });
+           if (values.length > 0) {
+               setUsdHistory({ labels, data: values });
+               
+               // SAR PEG CALCULATION (Real Market Logic: 3.75 SAR = 1 USD)
+               const sarValues = values.map((v: number) => Math.round(v / 3.75));
+               setSarHistory({ labels, data: sarValues });
+
+               // Calculate % Change
+               const firstVal = values[0];
+               const lastVal = values[values.length - 1];
+               const change = ((lastVal - firstVal) / firstVal) * 100;
+               setFxChange({ 
+                   usd: parseFloat(change.toFixed(2)), 
+                   sar: parseFloat(change.toFixed(2)) // SAR follows USD peg
+               });
+               setFxStatus('live');
+           } else {
+               setFxStatus('error');
+           }
+       })
+       .catch(err => {
+           console.error("FX Sync Error:", err);
+           setFxStatus('error');
        });
   }, [fxRange]);
 
@@ -355,53 +382,83 @@ export default function Dashboard() {
               )}
 
               {activeDetail === 'fx' && (
-                  <div className="p-10 rounded-[4rem] bg-[#0c0c0e] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300">
-                      <div className="flex justify-between items-center mb-10">
+                  <div className="p-8 md:p-12 rounded-[3.5rem] bg-[#0c0c0e] border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 relative overflow-hidden">
+                      {/* AMBIENT BACKGROUND GLOWS */}
+                      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/5 blur-[120px] pointer-events-none" />
+                      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-emerald-500/5 blur-[100px] pointer-events-none" />
+
+                      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-8 relative z-10">
                           <div>
-                            <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">📊 Global Financial HQ</h3>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase italic tracking-widest">Real-time Currency Intelligence Matrix • Institutional Grade</p>
+                             <div className="flex items-center gap-3 mb-3">
+                                <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">Global Financial HQ</h3>
+                                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest ${fxStatus === 'live' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${fxStatus === 'live' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                                    {fxStatus === 'live' ? 'Live Signal Active' : 'Stabilizing Matrix...'}
+                                </div>
+                             </div>
+                             <p className="text-[11px] text-slate-500 font-bold uppercase italic tracking-widest">Macro Currency Intelligence • Decision-Grade Data Feed</p>
                           </div>
                           
-                          {/* DATE RANGE SELECTOR - CRYPTO STYLE */}
-                          <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 gap-1">
-                              {['1D', '7D', '1M', '3M', '1Y'].map(range => (
-                                  <button 
-                                      key={range}
-                                      onClick={() => setFxRange(range)}
-                                      className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${fxRange === range ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
-                                  >
-                                      {range}
-                                  </button>
-                              ))}
-                          </div>
+                          <div className="flex items-center gap-6">
+                              {/* MARKET MOOD INDICATOR */}
+                              <div className="hidden xl:flex items-center gap-4 px-6 py-3 bg-white/[0.03] border border-white/5 rounded-2xl">
+                                  <div className="text-right">
+                                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Market Sentiment</p>
+                                      <p className="text-xs font-bold text-white italic">OPERATIONAL FAVORABLE</p>
+                                  </div>
+                                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-xl">🛡️</div>
+                              </div>
 
-                          <button onClick={() => setActiveDetail(null)} className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all text-2xl">✕</button>
+                              {/* DATE RANGE SELECTOR - CRYPTO STYLE */}
+                              <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1 gap-1">
+                                  {['1D', '7D', '1M', '3M', '1Y'].map(range => (
+                                      <button 
+                                          key={range}
+                                          onClick={() => setFxRange(range)}
+                                          className={`px-5 py-2.5 rounded-xl text-[10px] font-black transition-all ${fxRange === range ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                                      >
+                                          {range}
+                                      </button>
+                                  ))}
+                              </div>
+
+                              <button onClick={() => setActiveDetail(null)} className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all text-2xl bg-card shadow-2xl">✕</button>
+                          </div>
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 relative z-10">
                           {/* SAR CHART (PEGGED TIME SERIES) */}
-                          <div className="linear-card group bg-black/40 p-10 rounded-[3rem] border border-white/5 hover:border-red-500/20 transition-all">
+                          <div className="linear-card group bg-black/40 backdrop-blur-xl p-10 rounded-[3.5rem] border border-white/5 hover:border-red-500/30 transition-all shadow-2xl">
                               <div className="flex items-center justify-between mb-8">
                                 <div>
                                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">SAR / IDR Benchmarks • {fxRange} Series</p>
                                     <div className="flex flex-col">
-                                        <h4 className="text-4xl font-black text-white italic">
-                                            Rp {fxRates.sar.toLocaleString()} 
-                                            <span className="text-red-400 text-[10px] border border-red-400/30 px-2 py-0.5 rounded-full ml-2 uppercase">Official Peg 3.75</span>
-                                        </h4>
+                                        <div className="flex items-end gap-3">
+                                            <h4 className="text-5xl font-black text-white italic tracking-tighter">
+                                                Rp {fxRates.sar.toLocaleString()} 
+                                            </h4>
+                                            <span className={`text-[11px] font-black mb-1.5 px-2 py-0.5 rounded-lg border ${fxChange.sar >= 0 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                                                {fxChange.sar >= 0 ? '↑' : '↓'} {Math.abs(fxChange.sar)}%
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-3">
+                                            <span className="text-red-400 text-[9px] font-black border border-red-400/30 px-3 py-1 rounded-full uppercase tracking-widest">Official Peg 3.75</span>
+                                            <span className="text-slate-600 text-[9px] font-bold uppercase tracking-widest">Target Operational Cost</span>
+                                        </div>
+
                                         {/* COMPARISON FIGURE (ONLY ON HOVER) */}
-                                        <div className={`mt-2 h-6 transition-all duration-300 ${hoveredData.date ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
-                                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-red-400/50" />
-                                                Historical ({hoveredData.date ? new Date(hoveredData.date).toLocaleDateString() : ''}): 
-                                                <span className="text-white">Rp {hoveredData.sar?.toLocaleString()}</span>
+                                        <div className={`mt-6 h-8 transition-all duration-300 bg-white/5 rounded-2xl border border-white/5 flex items-center px-4 ${hoveredData.date ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}`}>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-3">
+                                                <span className="w-2 h-2 rounded-full bg-red-400/80 shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
+                                                Historical ({hoveredData.date ? new Date(hoveredData.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : ''}): 
+                                                <span className="text-white font-black ml-1">Rp {hoveredData.sar?.toLocaleString()}</span>
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="w-14 h-14 bg-red-400/10 border border-red-400/20 rounded-2xl flex items-center justify-center text-3xl animate-pulse">📉</div>
+                                <div className="w-16 h-16 bg-red-400/10 border border-red-400/20 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-xl">📉</div>
                               </div>
-                              <div className="h-64 w-full">
+                              <div className="h-72 w-full mt-4">
                                   <Line 
                                     data={{
                                         labels: sarHistory.labels,
@@ -409,14 +466,18 @@ export default function Dashboard() {
                                             label: 'SAR/IDR',
                                             data: sarHistory.data,
                                             borderColor: '#f87171',
-                                            borderWidth: 3,
-                                            tension: 0.4,
+                                            borderWidth: 4,
+                                            tension: 0.45,
                                             pointRadius: 0,
+                                            pointHoverRadius: 8,
+                                            pointHoverBackgroundColor: '#f87171',
+                                            pointHoverBorderColor: '#fff',
+                                            pointHoverBorderWidth: 4,
                                             fill: true,
                                             backgroundColor: (context) => {
                                                 const ctx = context.chart.ctx;
-                                                const gradient = ctx.createLinearGradient(0, 0, 0, 250);
-                                                gradient.addColorStop(0, 'rgba(248, 113, 113, 0.2)');
+                                                const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+                                                gradient.addColorStop(0, 'rgba(248, 113, 113, 0.25)');
                                                 gradient.addColorStop(1, 'rgba(248, 113, 113, 0)');
                                                 return gradient;
                                             },
@@ -445,13 +506,13 @@ export default function Dashboard() {
                                         scales: { 
                                             x: { 
                                                 display: true,
-                                                grid: { display: true, color: 'rgba(255,255,255,0.03)' },
+                                                grid: { display: true, color: 'rgba(255,255,255,0.02)' },
                                                 ticks: { display: false }
                                             }, 
                                             y: { 
                                                 display: true,
-                                                grid: { display: true, color: 'rgba(255,255,255,0.03)' },
-                                                ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 9, weight: 'bold' } }
+                                                grid: { display: true, color: 'rgba(255,255,255,0.02)' },
+                                                ticks: { color: 'rgba(255,255,255,0.15)', font: { size: 10, weight: 'bold' }, callback: (value) => value.toLocaleString() }
                                             } 
                                         }
                                     }}
@@ -460,28 +521,37 @@ export default function Dashboard() {
                           </div>
                           
                           {/* USD CHART (REAL-TIME TIME SERIES) */}
-                          <div className="linear-card group bg-black/40 p-10 rounded-[3rem] border border-white/5 hover:border-emerald-500/20 transition-all">
+                          <div className="linear-card group bg-black/40 backdrop-blur-xl p-10 rounded-[3.5rem] border border-white/5 hover:border-emerald-500/30 transition-all shadow-2xl">
                               <div className="flex items-center justify-between mb-8">
                                 <div>
                                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 italic">USD / IDR Liquidity • {fxRange} Series</p>
                                     <div className="flex flex-col">
-                                        <h4 className="text-4xl font-black text-white italic">
-                                            Rp {fxRates.usd.toLocaleString()} 
-                                            <span className="text-emerald-400 text-[10px] border border-emerald-400/30 px-2 py-0.5 rounded-full ml-2 uppercase">Market Live</span>
-                                        </h4>
+                                        <div className="flex items-end gap-3">
+                                            <h4 className="text-5xl font-black text-white italic tracking-tighter">
+                                                Rp {fxRates.usd.toLocaleString()} 
+                                            </h4>
+                                            <span className={`text-[11px] font-black mb-1.5 px-2 py-0.5 rounded-lg border ${fxChange.usd >= 0 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                                                {fxChange.usd >= 0 ? '↑' : '↓'} {Math.abs(fxChange.usd)}%
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-3">
+                                            <span className="text-emerald-400 text-[9px] font-black border border-emerald-400/30 px-3 py-1 rounded-full uppercase tracking-widest">Market Live Feed</span>
+                                            <span className="text-slate-600 text-[9px] font-bold uppercase tracking-widest">Haji Furoda Liquidity Index</span>
+                                        </div>
+
                                         {/* COMPARISON FIGURE (ONLY ON HOVER) */}
-                                        <div className={`mt-2 h-6 transition-all duration-300 ${hoveredData.date ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
-                                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/50" />
-                                                Historical ({hoveredData.date ? new Date(hoveredData.date).toLocaleDateString() : ''}): 
-                                                <span className="text-white">Rp {hoveredData.usd?.toLocaleString()}</span>
+                                        <div className={`mt-6 h-8 transition-all duration-300 bg-white/5 rounded-2xl border border-white/5 flex items-center px-4 ${hoveredData.date ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}`}>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-3">
+                                                <span className="w-2 h-2 rounded-full bg-emerald-400/80 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                                Historical ({hoveredData.date ? new Date(hoveredData.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : ''}): 
+                                                <span className="text-white font-black ml-1">Rp {hoveredData.usd?.toLocaleString()}</span>
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="w-14 h-14 bg-emerald-400/10 border border-emerald-400/20 rounded-2xl flex items-center justify-center text-3xl">💹</div>
+                                <div className="w-16 h-16 bg-emerald-400/10 border border-emerald-400/20 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-xl">💹</div>
                               </div>
-                              <div className="h-64 w-full">
+                              <div className="h-72 w-full mt-4">
                                   <Line 
                                     data={{
                                         labels: usdHistory.labels,
@@ -489,14 +559,18 @@ export default function Dashboard() {
                                             label: 'USD/IDR',
                                             data: usdHistory.data,
                                             borderColor: '#10b981',
-                                            borderWidth: 3,
-                                            tension: 0.4,
+                                            borderWidth: 4,
+                                            tension: 0.45,
                                             pointRadius: 0,
+                                            pointHoverRadius: 8,
+                                            pointHoverBackgroundColor: '#10b981',
+                                            pointHoverBorderColor: '#fff',
+                                            pointHoverBorderWidth: 4,
                                             fill: true,
                                             backgroundColor: (context) => {
                                                 const ctx = context.chart.ctx;
-                                                const gradient = ctx.createLinearGradient(0, 0, 0, 250);
-                                                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+                                                const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+                                                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
                                                 gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
                                                 return gradient;
                                             },
@@ -525,13 +599,13 @@ export default function Dashboard() {
                                         scales: { 
                                             x: { 
                                                 display: true,
-                                                grid: { display: true, color: 'rgba(255,255,255,0.03)' },
+                                                grid: { display: true, color: 'rgba(255,255,255,0.02)' },
                                                 ticks: { display: false }
                                             }, 
                                             y: { 
                                                 display: true,
-                                                grid: { display: true, color: 'rgba(255,255,255,0.05)' },
-                                                ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 9, weight: 'bold' } }
+                                                grid: { display: true, color: 'rgba(255,255,255,0.02)' },
+                                                ticks: { color: 'rgba(255,255,255,0.15)', font: { size: 10, weight: 'bold' }, callback: (value) => value.toLocaleString() }
                                             } 
                                         }
                                     }}

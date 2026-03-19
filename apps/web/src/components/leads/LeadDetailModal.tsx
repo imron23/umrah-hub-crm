@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import LeadTransactionPanel from '@/components/pricing/LeadTransactionPanel';
 
 export default function LeadDetailModal({ leadId, onClose }: { leadId: string, onClose: () => void }) {
   const [lead, setLead] = useState<any>(null);
@@ -34,7 +35,7 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
   const [userRole, setUserRole] = useState<string>('cs'); 
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'intel' | 'outreach' | 'timeline'>('intel');
+  const [activeTab, setActiveTab] = useState<'intel' | 'outreach' | 'timeline' | 'revenue'>('intel');
   const [brochureLink, setBrochureLink] = useState('https://umrahhub.id/brochure/premium-syawal-2026');
 
   // API Call Headers Helper
@@ -43,9 +44,16 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
       'Authorization': `Bearer ${localStorage.getItem('umrah_hub_jwt')}`
   });
 
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('syncing');
+
   const refreshLead = async () => {
+    setSyncStatus('syncing');
     try {
-      const res = await fetch(`http://localhost:8081/api/v1/public/leads_demo/${leadId}`, { headers: getHeaders() });
+      const res = await fetch(`http://localhost:8081/api/v1/public/leads_demo/${leadId}`, { 
+          headers: getHeaders(),
+          cache: 'no-store' 
+      });
+      if (!res.ok) throw new Error("Sync Failed");
       const data = await res.json();
       if (data.lead) {
         setLead(data.lead);
@@ -57,9 +65,11 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
             lead_score: data.lead.lead_score,
             progressNote: ''
         });
+        setSyncStatus('synced');
       }
     } catch (err) {
       console.error("Debug: Fetch error", err);
+      setSyncStatus('error');
     }
   };
 
@@ -260,7 +270,13 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                         <span className="text-brand-400 mx-1">/</span> 
                         <span className="text-text-muted font-medium">#{leadId.slice(0,8)}</span>
                         {lead && (
-                            <span className="ml-3 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] uppercase font-black text-brand-300">Score: {lead.lead_score}%</span>
+                            <div className="flex items-center gap-2 ml-4">
+                                <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] uppercase font-black text-brand-300">Score: {lead.lead_score}%</span>
+                                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest ${syncStatus === 'synced' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : syncStatus === 'syncing' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                                    <span className={`w-1 h-1 rounded-full ${syncStatus === 'syncing' ? 'bg-amber-500 animate-pulse' : syncStatus === 'synced' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                    {syncStatus}
+                                </div>
+                            </div>
                         )}
                     </h3>
                 </div>
@@ -277,6 +293,12 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                     <button onClick={() => setActiveTab('intel')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${activeTab === 'intel' ? 'bg-brand-500 text-white shadow-lg' : 'text-text-secondary hover:text-text-primary'}`}>📁 Intel</button>
                     <button onClick={() => setActiveTab('outreach')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${activeTab === 'outreach' ? 'bg-brand-500 text-white shadow-lg' : 'text-text-secondary hover:text-text-primary'}`}>🤖 Outreach</button>
                     <button onClick={() => setActiveTab('timeline')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${activeTab === 'timeline' ? 'bg-brand-500 text-white shadow-lg' : 'text-text-secondary hover:text-text-primary'}`}>🕒 History</button>
+                    <button onClick={() => setActiveTab('revenue')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 relative ${activeTab === 'revenue' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-text-secondary hover:text-text-primary'}`}>
+                        💰 Revenue
+                        {(lead?.status === 'dp' || lead?.status === 'closing') && activeTab !== 'revenue' && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        )}
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -290,6 +312,7 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
              <button onClick={() => setActiveTab('intel')} className={`flex-1 py-3 px-4 rounded-xl text-[9px] whitespace-nowrap font-black uppercase ${activeTab === 'intel' ? 'bg-brand-500 text-white' : 'bg-card text-text-muted'}`}>Intel</button>
              <button onClick={() => setActiveTab('outreach')} className={`flex-1 py-3 px-4 rounded-xl text-[9px] whitespace-nowrap font-black uppercase ${activeTab === 'outreach' ? 'bg-brand-500 text-white' : 'bg-card text-text-muted'}`}>Outreach</button>
              <button onClick={() => setActiveTab('timeline')} className={`flex-1 py-3 px-4 rounded-xl text-[9px] whitespace-nowrap font-black uppercase ${activeTab === 'timeline' ? 'bg-brand-500 text-white' : 'bg-card text-text-muted'}`}>History</button>
+             <button onClick={() => setActiveTab('revenue')} className={`flex-1 py-3 px-4 rounded-xl text-[9px] whitespace-nowrap font-black uppercase ${activeTab === 'revenue' ? 'bg-emerald-500 text-white' : 'bg-card text-text-muted'}`}>💰 Revenue</button>
         </div>
 
         {!lead ? (
@@ -411,40 +434,79 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div className="p-8 bg-card border border-border-card rounded-[2.5rem] relative shadow-xl">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-xl bg-brand-500/10 flex items-center justify-center text-lg">🎯</div>
-                            <h4 className="text-[10px] font-black text-text-primary uppercase tracking-widest">Requirement Mapping</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="p-10 bg-card border border-border-card rounded-[3rem] relative shadow-2xl group overflow-hidden transition-all hover:border-brand-500/30">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 blur-[50px] group-hover:bg-brand-500/10 transition-all pointer-events-none" />
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-2xl">🎯</div>
+                            <div>
+                                <h4 className="text-[11px] font-black text-white uppercase tracking-widest italic leading-none">Intelligence Mapping</h4>
+                                <p className="text-[9px] text-text-muted font-bold uppercase mt-1">Acquisition Meta Tags</p>
+                            </div>
                         </div>
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center group hover:bg-app/80 p-5 rounded-2xl border border-border-card transition-colors">
+                            <div className="flex justify-between items-center group/item hover:bg-app/80 p-5 rounded-2xl border border-border-card transition-all hover:translate-x-1">
                                 <span className="text-[10px] text-text-muted font-black uppercase tracking-widest">Age Insight</span>
-                                <span className="text-sm font-black italic text-text-primary">{details?.age || "-"} Y.O</span>
+                                <span className="text-sm font-black italic text-text-primary px-3 py-1 bg-white/5 rounded-lg">{details?.age || "-"} Y.O</span>
                             </div>
-                            <div className="flex justify-between items-center group hover:bg-app/80 p-5 rounded-2xl border border-border-card transition-colors">
+                            <div className="flex justify-between items-center group/item hover:bg-app/80 p-5 rounded-2xl border border-border-card transition-all hover:translate-x-1">
                                 <span className="text-[10px] text-text-muted font-black uppercase tracking-widest">Travel Pax</span>
-                                <span className="text-sm font-black italic text-text-primary">{details?.companions || "Individual"}</span>
+                                <span className="text-sm font-black italic text-text-primary px-3 py-1 bg-white/5 rounded-lg">{details?.companions || "Individual"}</span>
                             </div>
-                            <div className="flex justify-between items-center bg-brand-500/10 hover:bg-brand-500/20 p-5 rounded-2xl border border-brand-500/20 transition-colors">
+                            <div className="flex justify-between items-center bg-brand-500/5 hover:bg-brand-500/10 p-5 rounded-2xl border border-brand-500/20 transition-all hover:translate-x-1">
                                 <span className="text-[10px] text-brand-400 font-black uppercase tracking-widest">Budget Tier</span>
-                                <span className="text-sm font-black text-brand-300 italic">{details?.budget || "Standard"}</span>
+                                <span className="text-sm font-black text-brand-300 italic px-3 py-1 bg-brand-500/10 rounded-lg">{details?.budget || "Standard"}</span>
                             </div>
                         </div>
                      </div>
- 
-                     <div className="p-8 bg-card/40 border border-border-card rounded-[2.5rem] flex flex-col justify-center">
-                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
-                            <span className="w-6 h-[1px] bg-border-card" /> Lead's Manifestation
+  
+                     <div className="p-10 bg-card/40 border border-border-card rounded-[3rem] flex flex-col justify-center relative overflow-hidden group">
+                        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-emerald-500/5 blur-[60px] pointer-events-none" />
+                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-[0.2em] mb-6 flex items-center gap-4">
+                            <span className="w-8 h-[1px] bg-border-card" /> Original Intent Manifestation
                         </p>
-                        <blockquote className="text-lg md:text-xl font-medium text-text-primary leading-tight italic font-serif opacity-80 border-l-[3px] border-brand-500 pl-4 py-2">
-                            "{details?.content || lead.message || "Saya ingin konsultasi mengenai rencana ibadah..."}"
+                        <blockquote className="text-xl md:text-2xl font-medium text-text-primary leading-tight italic font-serif opacity-90 border-l-4 border-emerald-500/50 pl-8 py-4 bg-emerald-500/[0.02] rounded-r-[2rem]">
+                            "{details?.content || lead.message || "Consultation request for spiritual pilgrimage plans..."}"
                         </blockquote>
+                        <div className="mt-8 flex items-center gap-3">
+                            <div className="px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20 text-[8px] font-black text-emerald-400 uppercase tracking-widest">High Integrity Signal</div>
+                            <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10 text-[8px] font-black text-text-muted uppercase tracking-widest">Organic Feed</div>
+                        </div>
                       </div>
                    </div>
+                   {/* TRANSACTION ENGINE - Shows inline when status is dp or closing */}
+                   {(lead?.status === 'dp' || lead?.status === 'closing') && (
+                     <div>
+                       <div className="flex items-center gap-3 mb-4">
+                         <div className={`h-0.5 flex-1 ${lead?.status === 'closing' ? 'bg-emerald-500/30' : 'bg-amber-500/30'}`} />
+                         <span className={`text-[9px] font-black uppercase tracking-widest ${lead?.status === 'closing' ? 'text-emerald-500' : 'text-amber-400'}`}>
+                           {lead?.status === 'closing' ? '💰 Revenue Pipeline Active' : '💳 DP Commitment Mode'}
+                         </span>
+                         <div className={`h-0.5 flex-1 ${lead?.status === 'closing' ? 'bg-emerald-500/30' : 'bg-amber-500/30'}`} />
+                       </div>
+                       <LeadTransactionPanel
+                         leadId={leadId}
+                         currentStatus={lead?.status}
+                         onTransactionCommit={refreshLead}
+                       />
+                     </div>
+                   )}
                  </div>
                )}
 
+              {activeTab === 'revenue' && (
+                <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar animate-in fade-in duration-300">
+                  <div className="mb-8">
+                    <h3 className="text-[11px] font-black text-white uppercase tracking-widest italic">Revenue Commitment</h3>
+                    <p className="text-[10px] text-slate-500 font-bold mt-1 uppercase">Rekam transaksi DP atau Full Closing</p>
+                  </div>
+                  <LeadTransactionPanel
+                    leadId={leadId}
+                    currentStatus={lead?.status}
+                    onTransactionCommit={refreshLead}
+                  />
+                </div>
+               )}
               {activeTab === 'outreach' && (
                 <div className="flex-1 p-5 md:p-8 flex flex-col md:flex-row gap-8 overflow-hidden animate-in fade-in slide-in-from-right-2 duration-300">
 

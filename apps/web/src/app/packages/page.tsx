@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import CreatePackageModal from '@/components/packages/CreatePackageModal';
+import PricingEngine from '@/components/pricing/PricingEngine';
 import { Package as PackageIcon, Plane, Hotel, Clock, Plus, Trash2, Settings2, ShieldCheck } from 'lucide-react';
 
 interface Package {
@@ -164,6 +165,15 @@ export default function PackagesPage() {
               </div>
             ))}
         </div>
+      </div>
+
+      {/* ── TRIP PACKAGE ENGINE ── */}
+      <div className="pt-8 border-t border-white/5">
+        <div className="mb-8">
+          <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter">Trip Package Engine</h2>
+          <p className="text-sm text-slate-500 font-medium mt-2">Paket dengan tier kelas (VVIP/Gold/Silver), harga per tipe kamar, dan revenue pipeline terintegrasi.</p>
+        </div>
+        <PricingEngine />
       </div>
     </div>
   );

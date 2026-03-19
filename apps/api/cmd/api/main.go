@@ -73,6 +73,10 @@ func main() {
 	pRepo := packageRepository.NewPackageRepository(db.DB)
 	pHandler := packageHandlers.NewPackageHandler(pRepo)
 
+	// Initialize Pricing Engine Module
+	pricingRepo := crmRepository.NewPricingRepository(db.DB)
+	pricingHandler := crmHandlers.NewPricingHandler(pricingRepo, leadRepo)
+
 	// Initialize Recycle Bin
 	rbHandler := crmHandlers.NewRecycleBinHandler()
 
@@ -129,6 +133,28 @@ func main() {
 			public.GET("/recycle-bin", rbHandler.GetDeletedItems)
 			public.POST("/recycle-bin/restore", rbHandler.RestoreItem)
 			public.DELETE("/recycle-bin/purge/:id", rbHandler.PurgeItem)
+
+			// ─── PRICING ENGINE (Public for Demo) ────────────────────────────────
+			public.GET("/trip-packages", pricingHandler.GetAllTripPackages)
+			public.GET("/trip-packages/:id", pricingHandler.GetTripPackageByID)
+			public.POST("/trip-packages", pricingHandler.CreateTripPackage)
+			public.PATCH("/trip-packages/:id", pricingHandler.UpdateTripPackage)
+			public.DELETE("/trip-packages/:id", pricingHandler.DeleteTripPackage)
+
+			// Tiers
+			public.POST("/trip-packages/:id/tiers", pricingHandler.AddTier)
+			public.PATCH("/trip-packages/:id/tiers/:tier_id", pricingHandler.UpdateTier)
+			public.DELETE("/trip-packages/:id/tiers/:tier_id", pricingHandler.DeleteTier)
+
+			// Room Prices
+			public.POST("/tiers/:tier_id/room-prices", pricingHandler.UpsertRoomPrice)
+			public.DELETE("/tiers/:tier_id/room-prices/:price_id", pricingHandler.DeleteRoomPrice)
+
+			// Lead Transactions & Revenue
+			public.POST("/leads/:lead_id/transactions", pricingHandler.CommitTransaction)
+			public.GET("/leads/:lead_id/transactions", pricingHandler.GetLeadTransaction)
+			public.GET("/transactions", pricingHandler.GetAllTransactions)
+			public.GET("/revenue-stats", pricingHandler.GetRevenueStats)
 		}
 
 		// Restricted Admin Routes
