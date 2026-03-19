@@ -60,7 +60,7 @@ const TIER_PRESETS = [
   { name: "Bronze", label: "Economy", color: "#b45309" },
 ];
 
-const API = "http://localhost:8081/api/v1/public";
+const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api/v1") + "/public";
 
 // ─── Formatter ───────────────────────────────────────────────────────────────
 function fmtIDR(amount: number): string {
@@ -85,6 +85,7 @@ export default function PricingEngine() {
 
   // Modals
   const [showCreatePkg, setShowCreatePkg] = useState(false);
+  const [editingPkg, setEditingPkg] = useState<TripPackage | null>(null);
   const [showAddTier, setShowAddTier] = useState<{ pkgId: string; pkgCurrency: string } | null>(null);
   const [savingPkg, setSavingPkg] = useState(false);
   const [savingTier, setSavingTier] = useState(false);
@@ -156,21 +157,42 @@ export default function PricingEngine() {
         departure_date: pkgForm.departure_date || null,
         return_date: pkgForm.return_date || null,
       };
-      const res = await fetch(`${API}/trip-packages`, {
-        method: "POST",
+
+      const url = editingPkg ? `${API}/trip-packages/${editingPkg.id}` : `${API}/trip-packages`;
+      const method = editingPkg ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal simpan paket");
-      showToast(`Paket "${pkgForm.name}" berhasil dibuat! ✨`);
+      showToast(`Paket "${pkgForm.name}" berhasil ${editingPkg ? 'diupdate' : 'dibuat'}! ✨`);
       setShowCreatePkg(false);
+      setEditingPkg(null);
       setPkgForm({ ...emptyPkg });
       load();
     } catch (e: any) {
       showToast(e.message, "err");
     }
     setSavingPkg(false);
+  };
+
+  const openEditPkg = (pkg: TripPackage) => {
+    setEditingPkg(pkg);
+    setPkgForm({
+      name: pkg.name,
+      description: pkg.description,
+      departure_date: pkg.departure_date ? pkg.departure_date.split('T')[0] : "",
+      return_date: pkg.return_date ? pkg.return_date.split('T')[0] : "",
+      destination: pkg.destination,
+      duration_nights: pkg.duration_nights,
+      currency: pkg.currency as "IDR" | "USD",
+      status: pkg.status,
+      vendor_id: pkg.vendor_id || ""
+    });
+    setShowCreatePkg(true);
   };
 
   // ─── ADD TIER ─────────────────────────────────────────────────────────────
@@ -348,6 +370,7 @@ export default function PricingEngine() {
               onAddRoomPrice={addRoomPrice}
               onDeleteRoomPrice={deleteRoomPrice}
               onDeleteTier={deleteTier}
+              onEditPackage={() => openEditPkg(pkg)}
               onDeletePackage={() => deletePackage(pkg.id, pkg.name)}
             />
           ))}
@@ -356,7 +379,7 @@ export default function PricingEngine() {
 
       {/* ─── MODAL: CREATE PACKAGE ─────────────────────────────────── */}
       {showCreatePkg && (
-        <Modal title="Buat Paket Trip Baru ✨" onClose={() => { setShowCreatePkg(false); setPkgForm({ ...emptyPkg }); }}>
+        <Modal title={editingPkg ? "Edit Paket Trip 🛠️" : "Buat Paket Trip Baru ✨"} onClose={() => { setShowCreatePkg(false); setEditingPkg(null); setPkgForm({ ...emptyPkg }); }}>
           <div className="space-y-5">
             {/* Vendor Select */}
             <Field label="Penyelenggara (Vendor) *" hint="Data Vendor Premium Umrah Hub">
@@ -442,7 +465,7 @@ export default function PricingEngine() {
               className="flex-1 py-4 bg-brand-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:brightness-110 disabled:opacity-40 transition-all active:scale-95 flex items-center justify-center gap-2">
               {savingPkg ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Menyimpan...</> : "🚀 Simpan Paket"}
             </button>
-            <button onClick={() => { setShowCreatePkg(false); setPkgForm({ ...emptyPkg }); }}
+            <button onClick={() => { setShowCreatePkg(false); setEditingPkg(null); setPkgForm({ ...emptyPkg }); }}
               className="px-6 py-4 border border-white/10 text-slate-400 rounded-2xl font-bold text-xs uppercase tracking-widest hover:text-white transition-all">
               Batal
             </button>
@@ -565,7 +588,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 
 // ─── Package Card ─────────────────────────────────────────────────────────────
 function PackageCard({
-  pkg, roomForms, setRoomForms, savingRoom, onAddTier, onAddRoomPrice, onDeleteRoomPrice, onDeleteTier, onDeletePackage
+  pkg, roomForms, setRoomForms, savingRoom, onAddTier, onAddRoomPrice, onDeleteRoomPrice, onDeleteTier, onEditPackage, onDeletePackage
 }: {
   pkg: TripPackage;
   roomForms: Record<string, any>;
@@ -575,6 +598,7 @@ function PackageCard({
   onAddRoomPrice: (tierId: string) => void;
   onDeleteRoomPrice: (tierId: string, priceId: string) => void;
   onDeleteTier: (pkgId: string, tierId: string) => void;
+  onEditPackage: () => void;
   onDeletePackage: () => void;
 }) {
   const [expanded, setExpanded] = useState(true);
@@ -611,6 +635,9 @@ function PackageCard({
         <div className="flex items-center gap-2 shrink-0">
           <button onClick={onAddTier} className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/8 rounded-xl text-[9px] font-black uppercase tracking-widest text-white transition-all">
             + Tier
+          </button>
+          <button onClick={onEditPackage} className="px-5 py-2.5 bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest text-brand-400 transition-all">
+            Edit
           </button>
           <button onClick={() => setExpanded(!expanded)} className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/8 text-slate-400 hover:text-white transition-all text-xs">
             {expanded ? "▲" : "▼"}
