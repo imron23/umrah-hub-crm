@@ -78,6 +78,7 @@ function fmtCurrency(amount: number, currency: string): string {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function PricingEngine() {
   const [packages, setPackages] = useState<TripPackage[]>([]);
+  const [vendors, setVendors] = useState<any[]>([]);
   const [revenue, setRevenue] = useState<RevenueStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -94,7 +95,7 @@ export default function PricingEngine() {
   const emptyPkg = {
     name: "", description: "", departure_date: "", return_date: "",
     destination: "Makkah - Madinah", duration_nights: 9,
-    currency: "IDR", status: "active",
+    currency: "IDR", status: "active", vendor_id: ""
   };
   const [pkgForm, setPkgForm] = useState({ ...emptyPkg });
 
@@ -115,9 +116,10 @@ export default function PricingEngine() {
     setLoading(true);
     setApiError(null);
     try {
-      const [pkgRes, revRes] = await Promise.all([
+      const [pkgRes, revRes, vendRes] = await Promise.all([
         fetch(`${API}/trip-packages`),
         fetch(`${API}/revenue-stats`),
+        fetch(`${API}/vendors`),
       ]);
       
       if (!pkgRes.ok) throw new Error(`API Error: ${pkgRes.status} ${pkgRes.statusText}`);
@@ -128,6 +130,11 @@ export default function PricingEngine() {
       if (revRes.ok) {
         const revData = await revRes.json();
         setRevenue(revData.revenue || null);
+      }
+      
+      if (vendRes.ok) {
+        const vendData = await vendRes.json();
+        setVendors(vendData.vendors || []);
       }
     } catch (e: any) {
       setApiError(e.message || "Koneksi API gagal. Pastikan server berjalan.");
@@ -140,6 +147,7 @@ export default function PricingEngine() {
   // ─── CREATE PACKAGE ────────────────────────────────────────────────────────
   const createPackage = async () => {
     if (!pkgForm.name.trim()) return showToast("Nama paket wajib diisi", "err");
+    if (!pkgForm.vendor_id) return showToast("Provider vendor wajib dipilih!", "err");
     setSavingPkg(true);
     try {
       const body = {
@@ -350,14 +358,30 @@ export default function PricingEngine() {
       {showCreatePkg && (
         <Modal title="Buat Paket Trip Baru ✨" onClose={() => { setShowCreatePkg(false); setPkgForm({ ...emptyPkg }); }}>
           <div className="space-y-5">
+            {/* Vendor Select */}
+            <Field label="Penyelenggara (Vendor) *" hint="Data Vendor Premium Umrah Hub">
+              <div className="relative">
+                <select
+                  value={pkgForm.vendor_id}
+                  onChange={(e) => setPkgForm({ ...pkgForm, vendor_id: e.target.value })}
+                  className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none hover:border-brand-500/30 transition-all shadow-inner"
+                >
+                  <option value="" disabled>Pilih Penyelenggara Resmi...</option>
+                  {vendors.map(v => (
+                    <option key={v.id} value={v.id}>{v.vendor_name} ({v.tier})</option>
+                  ))}
+                </select>
+                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] text-text-muted">▼</div>
+              </div>
+            </Field>
+
             {/* Name */}
-            <Field label="Nama Paket *" hint="Contoh: Umrah Liburan Syawal 2 Juni 2026">
+            <Field label="Nama Paket Trip *" hint="Contoh: Umrah Liburan Syawal Berkah">
               <input
                 value={pkgForm.name}
                 onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })}
-                placeholder="Umrah Liburan Syawal 2 Juni 2026"
-                className="input"
-                autoFocus
+                placeholder="Umrah Liburan Syawal"
+                className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 placeholder:text-text-muted/50 hover:border-brand-500/30 transition-all shadow-inner"
               />
             </Field>
 
@@ -366,12 +390,12 @@ export default function PricingEngine() {
               <Field label="Tanggal Berangkat">
                 <input type="date" value={pkgForm.departure_date}
                   onChange={(e) => setPkgForm({ ...pkgForm, departure_date: e.target.value })}
-                  className="input" />
+                  className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 hover:border-brand-500/30 transition-all shadow-inner css-invert-calendar" />
               </Field>
               <Field label="Tanggal Kembali">
                 <input type="date" value={pkgForm.return_date}
                   onChange={(e) => setPkgForm({ ...pkgForm, return_date: e.target.value })}
-                  className="input" />
+                  className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 hover:border-brand-500/30 transition-all shadow-inner css-invert-calendar" />
               </Field>
             </div>
 
@@ -380,12 +404,12 @@ export default function PricingEngine() {
               <Field label="Destinasi">
                 <input value={pkgForm.destination}
                   onChange={(e) => setPkgForm({ ...pkgForm, destination: e.target.value })}
-                  className="input" />
+                  className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 hover:border-brand-500/30 transition-all shadow-inner" />
               </Field>
               <Field label="Durasi (Malam)">
                 <input type="number" min="1" value={pkgForm.duration_nights}
                   onChange={(e) => setPkgForm({ ...pkgForm, duration_nights: parseInt(e.target.value) || 1 })}
-                  className="input" />
+                  className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 hover:border-brand-500/30 transition-all shadow-inner" />
               </Field>
             </div>
 
@@ -405,11 +429,11 @@ export default function PricingEngine() {
             </Field>
 
             {/* Description */}
-            <Field label="Deskripsi Paket" hint="Hotel, maskapai, fasilitas, dll.">
+            <Field label="Deskripsi Paket Utama" hint="Informasikan detail tiket hotel, maskapai, fasilitas dll.">
               <textarea value={pkgForm.description}
                 onChange={(e) => setPkgForm({ ...pkgForm, description: e.target.value })}
-                rows={3} placeholder="Hotel Bintang 5 Makkah, Maskapai Garuda, Full Breakfast, Visa Terjamin..."
-                className="input resize-none" />
+                rows={3} placeholder="Makkah: Swissotel Al Maqam\nMadinah: Dallah Taibah\nMaskapai: Saudia Airlines Direct\nFasilitas Utama: Kereta Cepat Haramain, Full Board Meals..."
+                className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 placeholder:text-text-muted/50 hover:border-brand-500/30 transition-all resize-none shadow-inner" />
             </Field>
           </div>
 
@@ -455,13 +479,13 @@ export default function PricingEngine() {
                 <input value={tierForm.tier_name}
                   onChange={(e) => setTierForm({ ...tierForm, tier_name: e.target.value })}
                   placeholder="VVIP"
-                  className="input" autoFocus />
+                  className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 placeholder:text-text-muted/50 hover:border-brand-500/30 transition-all shadow-inner" autoFocus />
               </Field>
               <Field label="Sub-label" hint="e.g. Full Private, Premium">
                 <input value={tierForm.tier_label}
                   onChange={(e) => setTierForm({ ...tierForm, tier_label: e.target.value })}
                   placeholder="Full Private"
-                  className="input" />
+                  className="w-full bg-app border border-border-card rounded-2xl py-4 px-5 text-sm font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50 placeholder:text-text-muted/50 hover:border-brand-500/30 transition-all shadow-inner" />
               </Field>
             </div>
 
@@ -514,11 +538,13 @@ export default function PricingEngine() {
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-8">
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={onClose} />
-      <div className="relative bg-[#080810] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-2xl shadow-[0_50px_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">{title}</h3>
-          <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-2xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition-all">✕</button>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-card border border-border-card rounded-[2.5rem] p-8 w-full max-w-2xl shadow-[0_50px_100px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div className="flex items-center justify-between mb-8 border-b border-border-card pb-5">
+          <h3 className="text-2xl font-black text-text-primary italic uppercase tracking-tighter flex items-center gap-3">
+             <span className="text-brand-500">🕋</span> {title}
+          </h3>
+          <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-2xl border border-border-card text-text-muted hover:text-white hover:bg-card-hover hover:border-white/10 transition-all">✕</button>
         </div>
         {children}
       </div>
