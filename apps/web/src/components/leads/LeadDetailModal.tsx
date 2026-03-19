@@ -151,16 +151,26 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
   };
 
   const parseMessage = (msg: string) => {
-    const budgetMatch = msg.match(/\[Budget:\s*(.*?)\]/);
-    const ageMatch = msg.match(/\[Umur Utama:\s*(.*?)\]/);
-    const companionMatch = msg.match(/\[Pendamping:\s*(.*?)\]/);
-    const contentMatch = msg.match(/\[Pesan:\s*(.*?)\]/);
+    // Extracts: Form Data: Usia 45 tahun. [Sentiment Text] [Group String]
+    const ageMatch = msg.match(/Usia\s(\d+)\s/i);
+    const familyMatch = msg.match(/(sekeluarga \((\d+) orang\)|berdua bersama pasangan|sendiri)/i);
+    
+    let companions = "Individual";
+    let paxCount = 1;
+    if (familyMatch) {
+        if (familyMatch[1].includes('sendiri')) { companions = "Individual"; paxCount = 1; }
+        else if (familyMatch[1].includes('berdua')) { companions = "2 Pax (Couple)"; paxCount = 2; }
+        else if (familyMatch[2]) { companions = `${familyMatch[2]} Pax (Family)`; paxCount = parseInt(familyMatch[2], 10); }
+    }
+
+    const cleanContent = msg.replace(/Form Data: Usia \d+ tahun\.\s*/i, '');
 
     return {
-      budget: budgetMatch ? budgetMatch[1] : null,
+      budget: lead?.package_id ? "Paket Umrah" : "Program Perjalanan", // fallback
       age: ageMatch ? ageMatch[1] : null,
-      companions: companionMatch ? companionMatch[1] : null,
-      content: contentMatch ? contentMatch[1] : (msg.includes('[') ? null : msg)
+      companions: companions,
+      paxCount: paxCount,
+      content: cleanContent
     };
   };
 
@@ -197,18 +207,39 @@ export default function LeadDetailModal({ leadId, onClose }: { leadId: string, o
       const name = lead?.name || "Bapak/Ibu";
       const signature = includeSignature ? `\n\n*${csIdentity.name}*\n${csIdentity.position} - ${csIdentity.company}` : "";
       
+      const isReadyToBuy = details.content.toLowerCase().includes('akhir bulan ini') || details.content.toLowerCase().includes('rekening') || details.content.toLowerCase().includes('penawaran resmi');
+      const isComparing = details.content.toLowerCase().includes('mahal') || details.content.toLowerCase().includes('diskon');
+      const isElderly = ageVal >= 55;
+      const isFamily = details.paxCount > 1;
+      
+      const groupContext = isFamily ? `untuk ${details.paxCount} orang ` : "untuk keberangkatan Personal Bapak/Ibu ";
+      const healthContext = isElderly ? " Terlebih usia adalah prioritas kami, seluruh infrastruktur dan tim pendamping akan memastikan kenyamanan & kesehatan fisik Bapak/Ibu 100% terjaga selama di Tanah Suci.\n\n" : "";
+
+      let firstTouchEmpathetic = `Assalamu’alaikum Warahmatullahi Wabarakatuh, ${genderTitle} ${name}. 🙏\n\nTabarakallah, semoga ${genderTitle} ${isFamily ? 'sekeluarga' : ''} senantiasa dalam penjagaan Allah ﷻ. Kami menyambut niat mulia ${genderTitle} untuk rencana ibadah Umrah ${groupContext}berdasarkan data form yang kami terima.\n\n${healthContext}Izin, saya ingin bersilaturahmi sejenak membantu memastikan seluruh persiapan ${genderTitle} berjalan nyaman. Kapan kira-kira ada waktu luang untuk berbincang melalui telepon?${signature}`;
+      
+      let firstTouchProfessional = `Assalamu’alaikum, ${genderTitle} ${name}. Saya konsultan dari *${csIdentity.company}* menindaklanjuti ketertarikan ${genderTitle} pada program kami tsb.\n\n${healthContext}Sebagai biro perjalanan yang mengamalkan standar ketepatan dan amanah, kami ingin memastikan rencana logistik ${groupContext}sudah matang. Kapan kami bisa menghubungi ${genderTitle} untuk diskusi lanjutan?${signature}`;
+
+      // If High Intent / Hot Ready to Transfer
+      if (isReadyToBuy) {
+          firstTouchEmpathetic = `Assalamu’alaikum, ${genderTitle} ${name}. Masya Allah tabarakallah, kami sudah menerima konfirmasi kesiapan luar biasa dari ${genderTitle} ${isFamily ? 'sekeluarga' : ''} untuk mendaftar. 🛫\n\n${healthContext}Terkait prosedur administrasi, kami persilakan ${genderTitle} mengamankan seat secepatnya. Berikut saya lampirkan panduan prosedur pembayaran rekening resmi perusahaan kami. Jika berkenan, mari telepon singkat untuk memvalidasi data pax ya, ${genderTitle}!${signature}`;
+          
+          firstTouchProfessional = `Assalamu’alaikum, ${genderTitle} ${name}. Menyambung antusiasme dan niat kesiapan ${genderTitle} ${groupContext}.\n\nMengingat kuota paket sangat terbatas dan kami melihat urgensi transfer dari pihak Bapak/Ibu, invoice resmi dan petunjuk rekening perusahaan telah siap dikirimkan. Balas "SIAP" agar dokumen legal bisa langsung saya siapkan. ✨${signature}`;
+      }
+
+      // If Price Comparing
+      if (isComparing) {
+          firstTouchEmpathetic = `Assalamu’alaikum Warahmatullahi Wabarakatuh, ${genderTitle} ${name}. 🙏\n\nBismillah, kami sangat memahami kekhawatiran ${genderTitle} mengenai perbedaan harga. Namun kami menegaskan bahwa di agensi kami, seluruh paket disusun tanpa hidden-cost demi ketenangan ibadah ${groupContext}.\n\nKami ada opsi diskon group jika berkenan. Kapan waktu yang nyaman untuk saya bantu simulasikan biayanya?${signature}`;
+      }
+
       const goals: any = {
-        first_touch: {
-            empathetic: `Assalamu’alaikum Warahmatullahi Wabarakatuh, ${genderTitle} ${name}. 🙏\n\nTabarakallah, semoga ${genderTitle} sekeluarga senantiasa dalam penjagaan Allah ﷻ. Kami melihat niat mulia ${genderTitle} untuk rencana ibadah Umrah melalui paket ${details.budget || 'pilihan'}.\n\nIzin, saya ingin membantu memastikan seluruh persiapan ${genderTitle} berjalan dengan tenang dan khusyuk. Kapan ada waktu luang untuk berbincang sejenak?${signature}`,
-            professional: `Assalamu’alaikum ${genderTitle} ${name}. Saya konsultan dari *${csIdentity.company}*. Terima kasih atas ketertarikan ${genderTitle} pada program ${details.budget || 'pilihan'}.\n\nKami berkomitmen menjaga *amanah* dalam melayani perjalanan ibadah ${genderTitle}. Jika berkenan, saya ingin mendiskusikan rencana logistik agar sesuai dengan kenyamanan ${genderTitle}. Ada waktu luang hari ini?${signature}`
-        },
+        first_touch: { empathetic: firstTouchEmpathetic, professional: firstTouchProfessional },
         trial_closing: {
-            empathetic: `Assalamu’alaikum ${genderTitle} ${name}. Mengingat kuota paket ${details.budget || 'pilihan'} yang semakin terbatas, saya sarankan agar ${genderTitle} segera memantapkan niat dan mengamankan kursi. ⚡\n\nBismillah, semoga ini menjadi jalan kemudahan dari Allah ﷻ untuk segera berangkat ke Tanah Suci. Apakah invoice pendaftarannya bisa kami siapkan sekarang?${signature}`,
-            professional: `Assalamu’alaikum ${genderTitle} ${name}. Paket ini adalah pilihan terbaik untuk kenyamanan ibadah ${genderTitle}. Ketersediaan harga promo ini sangat terbatas. \n\nMohon konfirmasinya agar kami dapat menjaga *amanah* kuota ini khusus untuk ${genderTitle}. In Sya Allah, kami terbitkan invoice-nya hari ini?${signature}`
+            empathetic: `Assalamu’alaikum ${genderTitle} ${name}. Mengingat sisa kursi yang sangat menipis, saya sarankan agar ${genderTitle} ${isFamily?'sekeluarga ':''}segera mengamankan kuota. ⚡\n\nSemoga Allah mampukan jalan kita ke Tanah Suci. In Sya Allah, apakah formulir dan DP bisa kita proses hari ini?${signature}`,
+            professional: `Assalamu’alaikum ${genderTitle} ${name}. Ketersediaan kursi prioritas ${groupContext}pada promo ini akan segera habis tergantikan pendaftar lain. \n\nMohon amankan *amanah* kuota ini segera dengan mengirimkan konfirmasi dokumen pembayaran. Kami terbitkan invoice-nya hari ini ya?${signature}`
         },
         custom: {
-            empathetic: `Assalamu’alaikum ${genderTitle} ${name}. Semoga tetap sehat dan dalam lindungan Allah ﷻ.\n\nMemperhatikan *catatan kami sebelumnya (${pastNotes ? pastNotes.slice(0, 80) + '...' : 'terkait rencana ibadah Anda'})*, saya ingin memastikan apakah ${genderTitle} sudah mendapatkan info lanjutan? Tolong beritahu saya sekiranya ada bantuan tambahan yang dibutuhkan ya. 🙏${signature}`,
-            professional: `Assalamu’alaikum ${genderTitle} ${name}. Menindaklanjuti progres pendaftaran ${genderTitle} ke Tanah Suci.\n\nSesuai catatan dan diskusi terakhir kami (${pastNotes ? pastNotes.slice(0, 80) + '...' : 'sebelumnya'}), kami ingin memeriksa apakah ada hambatan yang bisa kami berikan solusinya dari pihak agensi? Kami menantikan diskusi lanjutan dari Bapak/Ibu.${signature}`
+            empathetic: `Assalamu’alaikum ${genderTitle} ${name}. Semoga tetap sehat dan dalam lindungan Allah ﷻ.\n\nMemperhatikan catatan/diskusi kami sebelumnya (${pastNotes ? pastNotes.slice(0, 80) + '...' : 'terkait data form Anda'}), kami ingin memastikan apakah ${genderTitle} sudah mendapatkan opsi terbaik? Tolong kabari saya sekiranya ada bantuan tambahan dari sisi administrasi. 🙏${signature}`,
+            professional: `Assalamu’alaikum ${genderTitle} ${name}. Menindaklanjuti progres pendaftaran ${genderTitle} ke Tanah Suci.\n\nSesuai catatan terakhir (${pastNotes ? pastNotes.slice(0, 80) + '...' : 'sebelumnya'}), kami perlu mengonfirmasi apakah ada hal administratif yang menahan ${genderTitle}? Kami menantikan respons positifnya demi keamanan kursi. ${signature}`
         }
       };
 
